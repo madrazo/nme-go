@@ -39,6 +39,9 @@ class ShaderBitmap extends Sprite
     private var timeUniform:Int;
     private var mouseUniform:Int;
     private var resolutionUniform:Int;
+
+    private var paramsUniform:Array<Int>;
+    public  var params:Array<Float>;
     
     private var startTime:Int;
     
@@ -54,18 +57,26 @@ class ShaderBitmap extends Sprite
     private var m_texBuffer:GLBuffer;
     private var m_texArray:Float32Array;
     static private inline var s_samplerName:String = "_Texture";
+    static private inline var s_paramsName:String = "_Params";
 
-    public function new(shaderProgram:GLProgram, textures:Array<BitmapData>, w:Int=200, h:Int=200):Void
+    public function new(shaderProgram:GLProgram, textures:Array<BitmapData>=null, w:Int=-1, h:Int=-1):Void
     {
-
         super(); 
 
         this.x = x;
         this.y = y;
-        this.w = w;
-        this.h = h;
-        this.shaderProgram = shaderProgram;
+        if(w>8 && h>8)
+        {
+            this.w = w;
+            this.h = h;
+        }
+        else
+        {
+            this.w = Lib.current.stage.stageWidth;
+            this.h = Lib.current.stage.stageHeight;
+        }
         m_positionY = -1;
+        this.shaderProgram = shaderProgram;
 
         if(textures!=null)
         {
@@ -98,12 +109,27 @@ class ShaderBitmap extends Sprite
         
         timeUniform = GL.getUniformLocation (shaderProgram, "_Time");
         resolutionUniform = GL.getUniformLocation (shaderProgram, "_ScreenParams");
-        mouseUniform = GL.getUniformLocation (shaderProgram, "nme_Mouse");
+        mouseUniform = GL.getUniformLocation (shaderProgram, "_Mouse");
+
+        var paramsUniform0:Int = GL.getUniformLocation (shaderProgram, s_paramsName+0);
+        if (paramsUniform0>0)
+        {
+            paramsUniform = [];
+            params = [];
+            paramsUniform[0] = paramsUniform0;
+            var i:Int=1;
+            while ( i<paramsUniform.length && paramsUniform[i]>0 ) 
+            {
+                paramsUniform[i] = GL.getUniformLocation (shaderProgram, s_paramsName+i);
+                i++;
+            }
+        }
         
         startTime = Lib.getTimer ();
+        vertexBuffer = GL.createBuffer ();  
         
         view = new OpenGLView ();
-        vertexBuffer = GL.createBuffer ();            
+          
         view.render = renderView;
         addChild(view);
         
@@ -156,6 +182,7 @@ class ShaderBitmap extends Sprite
     
     private inline function unbindTextures():Void 
     {
+        GL.bindTexture( GL.TEXTURE_2D, null );
         //if(m_textures!=null)
         //{
         //    GL.activeTexture(GL.TEXTURE1);
@@ -186,6 +213,17 @@ class ShaderBitmap extends Sprite
         if( resolutionUniform>=0 )
             GL.uniform4f (resolutionUniform, rect.width, rect.height, 1.0 + 1.0/rect.width, 1.0 + 1.0/rect.height);
         
+        if( paramsUniform!= null )
+        {
+            var i:Int = 0;
+            var j:Int = 0;
+            while(j<paramsUniform.length && paramsUniform[j]>0)
+            {
+                GL.uniform4f (paramsUniform[j], params[i++], params[i++], params[i++], params[i++]);
+                j++;
+            }
+        }
+
         if( m_positionX != x || m_positionY != y )
         {
             m_positionX = x;

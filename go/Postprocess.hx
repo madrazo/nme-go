@@ -41,6 +41,9 @@ class Postprocess extends Sprite
     private var timeUniform:Int;
     private var mouseUniform:Int;
     private var resolutionUniform:Int;
+
+    private var paramsUniform:Array<Int>;
+    public  var params:Array<Float>;
     
     private var startTime:Int;
     
@@ -50,6 +53,7 @@ class Postprocess extends Sprite
     //textures
     private var m_textures:Array<BitmapData>;
     private var m_textureName:Array<Int>;
+    private var m_renderTextureName:Array<Int>;
     private var m_normalName:Int;
     private var m_texAttribute:Int;
     private var m_texcoord:Array<Float>;
@@ -68,15 +72,15 @@ class Postprocess extends Sprite
 
     static private inline var s_samplerName:String = "_Texture";
     static private inline var s_renderSamplerName:String = "_RenderTexture";
+    static private inline var s_paramsName:String = "_Params";
 
     public function new(shaderProgram:GLProgram, textures:Array<BitmapData>=null, w:Int=-1, h:Int=-1):Void
     {
-
         super(); 
 
         this.x = x;
         this.y = y;
-        if(w>0 && h>0)
+        if(w>8 && h>8)
         {
             this.w = w;
             this.h = h;
@@ -104,14 +108,17 @@ class Postprocess extends Sprite
         m_texAttribute = GL.getAttribLocation (shaderProgram, "texPosition");
 
 
-        if(textures!=null)
+        if(textures!=null && textures.length>0)
         {
             m_textures = textures;
             m_textureName = new Array<Int>();
             for(i in 0...m_textures.length)
-                m_textureName[i] = GL.getUniformLocation(shaderProgram, s_samplerName+i); 
+                m_textureName[i] = GL.getUniformLocation (shaderProgram, s_samplerName+i); 
         }
-            
+	
+        m_renderTextureName = new Array<Int>();
+        m_renderTextureName[0] = GL.getUniformLocation (shaderProgram, s_renderSamplerName+"0"); 
+        
         vertexAttribute = GL.getAttribLocation (shaderProgram, "vertexPosition");
     
         m_projectionMatrixUniform = GL.getUniformLocation (shaderProgram, "NME_MATRIX_P");
@@ -119,9 +126,24 @@ class Postprocess extends Sprite
         
         timeUniform = GL.getUniformLocation (shaderProgram, "_Time");
         resolutionUniform = GL.getUniformLocation (shaderProgram, "_ScreenParams");
-        mouseUniform = GL.getUniformLocation (shaderProgram, "nme_Mouse");
+        mouseUniform = GL.getUniformLocation (shaderProgram, "_Mouse");
+
+        var paramsUniform0:Int = GL.getUniformLocation (shaderProgram, s_paramsName+0);
+        if (paramsUniform0>0)
+        {
+            paramsUniform = [];
+            params = [];
+            paramsUniform[0] = paramsUniform0;
+            var i:Int=1;
+            while ( i<paramsUniform.length && paramsUniform[i]>0 ) 
+            {
+                paramsUniform[i] = GL.getUniformLocation (shaderProgram, s_paramsName+i);
+                i++;
+            }
+        }
         
         startTime = Lib.getTimer ();
+        vertexBuffer = GL.createBuffer ();
         
         viewEnd = new OpenGLView ();            
         viewEnd.render = renderViewEnd;
@@ -129,7 +151,6 @@ class Postprocess extends Sprite
         viewStart = new OpenGLView ();           
         viewStart.render = renderviewStart;
 
-        vertexBuffer = GL.createBuffer ();
 
         addChild(viewEnd);
         addChild(viewStart);
@@ -171,12 +192,12 @@ class Postprocess extends Sprite
         GL.enableVertexAttribArray (m_texAttribute);
         GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
 
-        var textureName = GL.getUniformLocation(shaderProgram, s_renderSamplerName); 
+        m_renderTextureName[0] = GL.getUniformLocation(shaderProgram, s_renderSamplerName); 
         GL.activeTexture(GL.TEXTURE0);
 
         GL.bindTexture( GL.TEXTURE_2D, m_target.getTexture() );
 
-        GL.uniform1i( textureName, 0 );
+        GL.uniform1i( m_renderTextureName[0], 0 );
 
         if(m_textures!=null)
         {
@@ -187,9 +208,9 @@ class Postprocess extends Sprite
             {
                 if( m_textureName[i]>0 )
                 { 
-                    GL.activeTexture(GL.TEXTURE0+i);
+                    GL.activeTexture(GL.TEXTURE0+(i+m_renderTextureName.length));
                     GL.bindBitmapDataTexture( m_textures[i] );
-                    GL.uniform1i( m_textureName[i], i );
+                    GL.uniform1i( m_textureName[i], i+m_renderTextureName.length );
                 }
             }
         }
@@ -263,7 +284,7 @@ class Postprocess extends Sprite
         
         if( timeUniform>=0 )
         {
-            var time = Lib.getTimer () - startTime;
+            var time = Lib.getTimer() - startTime;
             GL.uniform1f (timeUniform, time / 1000);
         }
 
@@ -273,6 +294,17 @@ class Postprocess extends Sprite
         if( resolutionUniform>=0 )
             GL.uniform4f (resolutionUniform, rect.width, rect.height, 1.0 + 1.0/rect.width, 1.0 + 1.0/rect.height);
         
+        if( paramsUniform!= null )
+        {
+            var i:Int = 0;
+            var j:Int = 0;
+            while(j<paramsUniform.length && paramsUniform[j]>0)
+            {
+                GL.uniform4f (paramsUniform[j], params[i++], params[i++], params[i++], params[i++]);
+                j++;
+            }
+        }
+
         if( m_positionX != x || m_positionY != y )
         {
             m_positionX = x;

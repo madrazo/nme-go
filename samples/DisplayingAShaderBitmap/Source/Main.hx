@@ -88,12 +88,12 @@ class Main extends Sprite {
         public var fs_heroku_6284_1 = 
 "   varying vec2 vTexCoord;
     uniform float _Time;
-    uniform vec2 nme_Mouse;
+    uniform vec2 _Mouse;
     uniform vec4 _ScreenParams;
   
     void main() {           
 
-        vec2 position = ( gl_FragCoord.xy / _ScreenParams.xy ) + nme_Mouse / 1.0;
+        vec2 position = ( gl_FragCoord.xy / _ScreenParams.xy ) + _Mouse / 1.0;
             
         float color = 0.0;
         color += sin( position.x * cos( _Time / 15.0 ) * 80.0 ) + cos( position.y * cos( _Time / 15.0 ) * 10.0 );
@@ -111,7 +111,7 @@ class Main extends Sprite {
 
     uniform sampler2D _Texture0;   
     //uniform float _Time;
-    //uniform vec2 nme_Mouse;
+    //uniform vec2 _Mouse;
     //uniform vec4 _ScreenParams;
   
     void main() {  
@@ -126,14 +126,14 @@ class Main extends Sprite {
     uniform sampler2D _Texture0;
     uniform sampler2D _Texture1;
     uniform float _Time;
-    uniform vec2 nme_Mouse;
+    uniform vec2 _Mouse;
     //uniform vec4 _ScreenParams;
 
     void main() {
         // Extract the normal from the normal map
         vec3 normal = normalize(texture2D(_Texture1, vTexCoord).rgb * 2.0 - 1.0);
         // Determine where the light is positioned
-        vec3 light_pos = normalize(vec3(nme_Mouse.xy, 1.5));
+        vec3 light_pos = normalize(vec3(_Mouse.xy, 1.5));
         // Calculate the lighting diffuse value
         float diffuse = max(dot(normal, light_pos), 0.0);
         vec4 color  = texture2D(_Texture0, vTexCoord).rgba;
@@ -151,12 +151,12 @@ class Main extends Sprite {
     uniform sampler2D _Texture1;
     uniform sampler2D _Texture2;
     uniform float _Time;
-    uniform vec2 nme_Mouse;
+    uniform vec2 _Mouse;
     //uniform vec4 _ScreenParams;
 
     void main() {
         vec3 normal = normalize(texture2D(_Texture1, vTexCoord).rgb * 2.0 - 1.0);
-        vec3 light_pos = normalize(vec3(nme_Mouse.xy, 1.5));
+        vec3 light_pos = normalize(vec3(_Mouse.xy, 1.5));
         float diffuse = max(dot(normal, light_pos), 0.0);
         vec4 color  = texture2D(_Texture0, vTexCoord).rgba;
         vec3 color1 = diffuse * color.rgb;
@@ -173,9 +173,9 @@ class Main extends Sprite {
         public var fs_wave = 
 "   varying vec2 vTexCoord;
 
-    uniform sampler2D _RenderTexture;   
+    uniform sampler2D _RenderTexture0;   
     uniform float _Time;
-    //uniform vec2 nme_Mouse;
+    //uniform vec2 _Mouse;
     //uniform vec4 _ScreenParams;
   
     void main() {  
@@ -183,7 +183,7 @@ class Main extends Sprite {
         float offset = _Time * 2.0 *3.14159 * 0.75;
         texcoord.x += sin(texcoord.y * 4.0*2.0*3.14159 + offset) / 100.0;
         // Set the output color of our current pixel  
-        gl_FragColor = texture2D(_RenderTexture, texcoord).rgba;  
+        gl_FragColor = texture2D(_RenderTexture0, texcoord).rgba;  
     }  
 ";
 }

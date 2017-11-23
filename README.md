@@ -1,6 +1,6 @@
 # nme-go
-NME Graphics Objects: node-based programable GPU effects on top of GLView
- >Initially developed by Bamtang Games
+NME Graphics Objects: node-based programable GPU effects on top of GLView (tested on [NME](https://github.com/haxenme/nme), may work in [OpenFL](http://www.openfl.org/))
+ >Initially developed by [Bamtang Games](http://www.bamtang.com)
 
 ## Motivation: 
 
@@ -14,7 +14,7 @@ Similar to a `Bitmap` that has a shader program and 0, 1, 2 or more `BitmapData`
 
 ### Postprocess: 
 
-It's a postprocess node. Its children are drawn on a render target and a shader is applied. You can have `Postprocess` nodes as parent/children of other `Postprocess` nodes. In comparisson, "ShaderBitmap" only applies a shader and doesn't generate a render target.
+It's a postprocess node. Its children are drawn on a render target and a shader is applied. You can have `Postprocess` nodes as parent/children of other `Postprocess` nodes. In comparisson, `ShaderBitmap` only applies a shader and doesn't generate a render target.
 
 ## Installation:
 After installing Haxe and NME, download by Git or Zip. Use command: ```haxelib dev nme-go your_path/nme-go``` 
@@ -31,10 +31,41 @@ import go.Postprocess;
 ## Run the sample:
 Open command prompt in `nme-go/samples/DisplayingAShaderBitmap` and run command ```nme```, ```nme android```, ```nme winrt```, etc.
 
+## Writting shaders:
+
+### Vertex shader base
+```
+attribute vec3 vertexPosition;
+attribute vec2 texPosition;
+uniform mat4 NME_MATRIX_MV;
+uniform mat4 NME_MATRIX_P;
+varying vec2   vTexCoord;
+void main() {            
+    vTexCoord = texPosition;
+    gl_Position = NME_MATRIX_P * NME_MATRIX_MV * vec4(vertexPosition, 1.0);
+}
+```
+
+## Pixel shader base
+
+```
+varying vec2 vTexCoord;
+uniform sampler2D _Texture0;         //optional: can be none or multiple textures (_Texture1, _Texture2...)
+uniform float _Time;                 //optional: ms
+uniform vec2 _Mouse;                 //optional
+uniform vec4 _ScreenParams;          //optional: screen resolution in xy
+uniform vec4 _Params0;               //optional: first four custom parameter values (_Params1, _Params2...)
+uniform sampler2D _RenderTexture0;   //optional (Postprocess): input textures from render targets 
+
+void main() {  
+    gl_FragColor = texture2D(_Texture0, vTexCoord).rgba;
+}  
+```
+
  >Notes:
 
  >Work in progress. Getting some ideas from [Gratin](http://gratin.gforge.inria.fr/)
 
  >elephant1_*.png textures by Cocos2d-x under MIT License
- 
+
  >NME logo by NME under MIT License
