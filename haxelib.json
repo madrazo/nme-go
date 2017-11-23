@@ -1,0 +1,11 @@
+{
+	"name":"nme-go",
+	"url":"https://github.com/madrazo/nme-go",
+	"license":"MIT",
+	"tags":["NME", "Shader", "Engine"],
+	"description":"NME Graphics Objects: node-based programable GPU effects on top of GLView",
+	"version":"0.0.1",
+	"releasenote":"First release",
+	"contributors":["madrazo","bamtanggames","ex"],
+	"dependencies":{}
+}

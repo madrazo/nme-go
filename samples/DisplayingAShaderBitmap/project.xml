@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="ShaderBitmap" package="nme.samples.shaderbitmap" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="ShaderBitmap" />
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+    <icon path="Assets/nme.svg" />
+
+    <haxelib name="nme-go" />
+	
+</project>
