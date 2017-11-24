@@ -65,10 +65,9 @@ class Postprocess extends Sprite
     private var m_clear_g:Float;
     private var m_clear_b:Float;
     private var m_clear_alpha:Float;
+    private var mDrawOffline:Bool;
 
-    private var m_target:RenderTarget;
-    public static var sCurrentTarget:RenderTarget;
-    private var mRestoreTarget:RenderTarget;
+    public var mInTargets:Array<PostprocessIN>;
 
     static private inline var s_samplerName:String = "_Texture";
     static private inline var s_renderSamplerName:String = "_RenderTexture";
@@ -77,6 +76,9 @@ class Postprocess extends Sprite
     public function new(shaderProgram:GLProgram, textures:Array<BitmapData>=null, w:Int=-1, h:Int=-1):Void
     {
         super(); 
+        mInTargets = [];
+        mInTargets[0] = new PostprocessIN();
+        super.addChild(mInTargets[0]);
 
         this.x = x;
         this.y = y;
@@ -151,14 +153,33 @@ class Postprocess extends Sprite
         viewStart = new OpenGLView ();           
         viewStart.render = renderviewStart;
 
-
-        addChild(viewEnd);
-        addChild(viewStart);
+        super.addChild(viewStart);
+        super.addChild(viewEnd);
 
         rebuildMatrix();
 
         //test: fill with red color
         //setClear( true, 0.5, 1.0, 0, 0 );
+    }
+
+    public function addChildSlot( slot:Int, child:DisplayObject )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN();
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].addChild( child );
+    }
+
+    public function addChildAt_Slot( slot:Int, child:DisplayObject, index:Int )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN();
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].addChildAt( child, index );
     }
     
     public function setSize( w:Int, h:Int ):Void 
@@ -192,12 +213,33 @@ class Postprocess extends Sprite
         GL.enableVertexAttribArray (m_texAttribute);
         GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
 
-        m_renderTextureName[0] = GL.getUniformLocation(shaderProgram, s_renderSamplerName); 
+        var overrideTexture:nme.gl.GLTexture =  mInTargets[0].getTexture();
+        m_renderTextureName[0] = GL.getUniformLocation(shaderProgram, s_renderSamplerName+"0"); 
         GL.activeTexture(GL.TEXTURE0);
-
-        GL.bindTexture( GL.TEXTURE_2D, m_target.getTexture() );
-
+        if( overrideTexture!=null )
+        {
+            GL.bindTexture( GL.TEXTURE_2D, overrideTexture );
+        }
+        else
+        {
+            trace("error");
+        }
         GL.uniform1i( m_renderTextureName[0], 0 );
+
+        if( mInTargets[1]!=null )
+        {
+            m_renderTextureName[1] = GL.getUniformLocation(shaderProgram, s_renderSamplerName+"1"); 
+            if( m_renderTextureName[1]>0 )
+            {
+                GL.activeTexture(GL.TEXTURE0+1);
+                GL.bindTexture( GL.TEXTURE_2D, mInTargets[1].getTexture() );
+                GL.uniform1i( m_renderTextureName[1], 1 );
+            }
+            else
+            {
+                trace("error");
+            }
+        }
 
         if(m_textures!=null)
         {
@@ -208,9 +250,9 @@ class Postprocess extends Sprite
             {
                 if( m_textureName[i]>0 )
                 { 
-                    GL.activeTexture(GL.TEXTURE0+(i+m_renderTextureName.length));
+                    GL.activeTexture(GL.TEXTURE0+(i));
                     GL.bindBitmapDataTexture( m_textures[i] );
-                    GL.uniform1i( m_textureName[i], i+m_renderTextureName.length );
+                    GL.uniform1i( m_textureName[i], i );
                 }
             }
         }
@@ -223,54 +265,25 @@ class Postprocess extends Sprite
     
     function renderviewStart (rect:Rectangle):Void
     {
-        if( m_target == null )
-            m_target = getTarget( Std.int(rect.width), Std.int(rect.height) );
-
-        mRestoreTarget = sCurrentTarget;
-        sCurrentTarget = m_target;
-
-        //startRenderToTexture
-        GL.bindFramebuffer( GL.FRAMEBUFFER, m_target.getFramebuffer() );
-
-    #if 0 //desktop
+        #if 0 //desktop
         // Fix if app is resized.
         if ( appscale > 1.0 )
             GL.viewport(0,0,APP_WIDTH,APP_HEIGHT);
-#end
-        if ( m_clear )
-        {
-            GL.clearColor( m_clear_r, m_clear_g, m_clear_b, m_clear_alpha );
-            GL.clear( GL.COLOR_BUFFER_BIT );
-        }
-}
-
-    private function getTarget( w:Int = -1, h:Int = -1 ):RenderTarget
-    {
-        return new RenderTarget( w, h );
+        #end
     }
 
-    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0 )
+    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, slot:Int=0 )
     {
-        m_clear = value;
-        m_clear_alpha = alpha;
-        m_clear_r = r;
-        m_clear_g = g;
-        m_clear_b = b;
+        setClearSlot( 0, value, alpha, r, g , b);
+    }
+
+    public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0)
+    {
+        mInTargets[slot].setClear( value, alpha, r, g , b);
     }
 
     private function renderViewEnd (rect:Rectangle):Void
     {       
-        if( mRestoreTarget!=null )
-        {
-            sCurrentTarget = mRestoreTarget;
-            GL.bindFramebuffer( GL.FRAMEBUFFER, mRestoreTarget.getFramebuffer() );
-        }
-        else
-        {
-            sCurrentTarget = null;
-            GL.bindFramebuffer( GL.FRAMEBUFFER, null );
-        }
-
         #if 0 //desktop
         if ( appscale > 1.0 )
             GL.viewport( 0, 0, Lib.current.stage.stageWidth, Lib.current.stage.stageWidthHeight);
@@ -333,15 +346,14 @@ class Postprocess extends Sprite
 
     override public function addChild(child:DisplayObject):DisplayObject 
     {
-      nmeAddChild(child);
-      nmeAddChild(viewEnd);
-      return child;
+        addChildSlot(0, child); 
+        return child;
     }
 
     override public function addChildAt(child:DisplayObject, index:Int):DisplayObject 
     {
-      addChildAt(child, index+1);
-      return child;
+        addChildAt_Slot(0, child, index); 
+        return child;
     }
 }
 
