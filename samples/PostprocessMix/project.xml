@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 
-  <meta title="ShaderBitmap" package="nme.samples.postprocesstwotargets" version="1.0.0" company="NME" />
-  <app main="Main" path="Export" file="ShaderBitmap" />
+  <meta title="PostprocessMix" package="nme.samples.postprocessmix" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="PostprocessMix" />
 
 	<source path="Source" />
 	<assets path="Assets" rename="assets"/>
