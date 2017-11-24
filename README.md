@@ -64,7 +64,7 @@ void main() {
 
  >Notes:
 
- >Work in progress. Getting some ideas from [Gratin](http://gratin.gforge.inria.fr/)
+ >Work in progress. Getting some ideas from [Designing Gratin A GPU-Tailored Node-Based System](http://jcgt.org/published/0004/04/03/)
 
  >elephant1_*.png textures by Cocos2d-x under MIT License
 

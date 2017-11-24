@@ -65,10 +65,12 @@ class Postprocess extends Sprite
     private var m_clear_g:Float;
     private var m_clear_b:Float;
     private var m_clear_alpha:Float;
+    private var mDrawOffline:Bool;
 
-    private var m_target:RenderTarget;
+    public var m_target:RenderTarget;
     public static var sCurrentTarget:RenderTarget;
     private var mRestoreTarget:RenderTarget;
+    public var mInTargets:Array<Postprocess>;
 
     static private inline var s_samplerName:String = "_Texture";
     static private inline var s_renderSamplerName:String = "_RenderTexture";
@@ -160,6 +162,23 @@ class Postprocess extends Sprite
         //test: fill with red color
         //setClear( true, 0.5, 1.0, 0, 0 );
     }
+
+    public function drawOffline( val:Bool ):Void
+    {
+        mDrawOffline = val;
+    }
+
+    public function inTargetInput( slot:Int, inNode:Postprocess )
+    {
+        if(mInTargets==null)
+            mInTargets = [];
+        mInTargets[slot] = inNode;
+    }
+
+    public function getTexture():nme.gl.GLTexture
+    {
+        return m_target.getTexture();
+    }
     
     public function setSize( w:Int, h:Int ):Void 
     {
@@ -192,12 +211,37 @@ class Postprocess extends Sprite
         GL.enableVertexAttribArray (m_texAttribute);
         GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
 
+        var overrideTexture:nme.gl.GLTexture = null;
+        if( mInTargets!=null && mInTargets[0]!=null)
+        {
+            overrideTexture = mInTargets[0].getTexture();
+        }
+
         m_renderTextureName[0] = GL.getUniformLocation(shaderProgram, s_renderSamplerName); 
         GL.activeTexture(GL.TEXTURE0);
-
-        GL.bindTexture( GL.TEXTURE_2D, m_target.getTexture() );
-
+        if( overrideTexture!=null )
+        {
+            GL.bindTexture( GL.TEXTURE_2D, overrideTexture );
+        }
+        else
+        {
+            GL.bindTexture( GL.TEXTURE_2D, m_target.getTexture() );
+        }
         GL.uniform1i( m_renderTextureName[0], 0 );
+
+        if( mInTargets!=null )
+        {
+            if( mInTargets[1]!=null )
+            {
+                m_renderTextureName[1] = GL.getUniformLocation(shaderProgram, s_renderSamplerName); 
+                if( m_renderTextureName[1]>0 )
+                {
+                    GL.activeTexture(GL.TEXTURE0+1);
+                    GL.bindTexture( GL.TEXTURE_2D, mInTargets[1].getTexture() );
+                    GL.uniform1i( m_renderTextureName[1], 1 );
+                }
+            }
+        }
 
         if(m_textures!=null)
         {
@@ -270,6 +314,12 @@ class Postprocess extends Sprite
             sCurrentTarget = null;
             GL.bindFramebuffer( GL.FRAMEBUFFER, null );
         }
+
+        if(mDrawOffline)
+        {
+            return;
+        }
+
 
         #if 0 //desktop
         if ( appscale > 1.0 )
