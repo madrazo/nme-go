@@ -28,6 +28,8 @@ class Postprocess extends Sprite
     
     private var h:Int;
     private var w:Int;
+    private var h2:Float;
+    private var w2:Float;
     
     private var m_positionX:Float;
     private var m_positionY:Float;
@@ -45,7 +47,7 @@ class Postprocess extends Sprite
     private var paramsUniform:Array<Int>;
     public  var params:Array<Float>;
     
-    private var startTime:Int;
+    private var startTime:Float;
     
     private var m_windowWidth:Float;
     private var m_windowHeight:Float;
@@ -144,7 +146,7 @@ class Postprocess extends Sprite
             }
         }
         
-        startTime = Lib.getTimer ();
+        resetTime();
         vertexBuffer = GL.createBuffer ();
         
         viewEnd = new OpenGLView ();            
@@ -157,9 +159,17 @@ class Postprocess extends Sprite
         super.addChild(viewEnd);
 
         rebuildMatrix();
+	
+	w2 = 1.0 + 1.0/w;
+	h2 = 1.0 + 1.0/h;
 
         //test: fill with red color
         //setClear( true, 0.5, 1.0, 0, 0 );
+    }
+
+    public function resetTime()
+    {
+        startTime = Globals.instance.getTimerSec();
     }
 
     public function addChildSlot( slot:Int, child:DisplayObject )
@@ -279,6 +289,11 @@ class Postprocess extends Sprite
 
     public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0)
     {
+        if(mInTargets[slot]==null)
+        {
+            trace("error. needs SetChildSlot first");
+            return;
+        }
         mInTargets[slot].setClear( value, alpha, r, g , b);
     }
 
@@ -295,18 +310,8 @@ class Postprocess extends Sprite
         GL.enableVertexAttribArray (vertexAttribute);
         GL.vertexAttribPointer (vertexAttribute, 3, GL.FLOAT, false, 0, 0);
         
-        if( timeUniform>=0 )
-        {
-            var time = Lib.getTimer() - startTime;
-            GL.uniform1f (timeUniform, time / 1000);
-        }
-
-        if( mouseUniform>=0 )
-            GL.uniform2f (mouseUniform, (Lib.current.stage.mouseX / Lib.current.stage.stageWidth) * 2 - 1, (Lib.current.stage.mouseY / Lib.current.stage.stageHeight) * 2 - 1);
-
-        if( resolutionUniform>=0 )
-            GL.uniform4f (resolutionUniform, rect.width, rect.height, 1.0 + 1.0/rect.width, 1.0 + 1.0/rect.height);
-        
+        Globals.instance.setUniforms(timeUniform, startTime, mouseUniform, -1);
+ 
         if( paramsUniform!= null )
         {
             var i:Int = 0;
@@ -324,11 +329,16 @@ class Postprocess extends Sprite
             m_positionY = y;
             m_modelViewMatrix = Matrix3D.create2D (m_positionX, m_positionY, 1, 0);
         }
-        if( rect.width!=m_windowWidth || rect.height!=m_windowHeight ) {
-            m_windowWidth  = rect.width;
-            m_windowHeight = rect.height ;
-            m_projectionMatrix = Matrix3D.createOrtho (0, rect.width, rect.height, 0, 1000, -1000);
+
+        if( w!=m_windowWidth || h!=m_windowHeight ) {
+            m_windowWidth  = w;
+            m_windowHeight = h ;
+	    w2 = 1.0 + 1.0/m_windowWidth;
+	    h2 = 1.0 + 1.0/m_windowHeight;
+            m_projectionMatrix = Matrix3D.createOrtho (0, w, h, 0, 1000, -1000);
         }
+        if( resolutionUniform>=0 )
+            GL.uniform4f (resolutionUniform, w, h, w2, h2);
         GL.uniformMatrix3D (m_projectionMatrixUniform, false, m_projectionMatrix);
         GL.uniformMatrix3D (m_modelViewMatrixUniform, false, m_modelViewMatrix);
     

@@ -51,10 +51,10 @@ void main() {
 ```
 varying vec2 vTexCoord;
 uniform sampler2D _Texture0;         //optional: can be none or multiple textures (_Texture1, _Texture2...)
-uniform float _Time;                 //optional: ms
-uniform vec2 _Mouse;                 //optional
-uniform vec4 _ScreenParams;          //optional: screen resolution in xy
-uniform vec4 _Params0;               //optional: first four custom parameter values (_Params1, _Params2...)
+uniform vec4 _Time;                  //optional: seconds [t/20, t, t*2, t*3]
+uniform vec2 _Mouse;                 //optional: xy mouse position in range 0 to 1
+uniform vec4 _ScreenParams;          //optional: xy are render target width/heights in pixels. z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
+uniform vec4 _Params0;               //optional: custom parameter values (optional: _Params1, _Params2...)
 uniform sampler2D _RenderTexture0;   //optional (Postprocess): input textures from render targets 
 
 void main() {  

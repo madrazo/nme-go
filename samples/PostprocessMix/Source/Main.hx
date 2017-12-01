@@ -82,10 +82,7 @@ class Main extends Sprite {
 
     uniform sampler2D _RenderTexture0;
     uniform sampler2D _RenderTexture1;
-    //uniform float _Time;
-    //uniform vec2 _Mouse;
-    //uniform vec4 _ScreenParams;
-    uniform vec4 _Params0;
+    uniform vec4 _Params0; //could use (sin( _Time.y*0.01 )+1.0) /2.0 
   
     void main() {
         // Set the output color of our current pixel  

@@ -43,7 +43,7 @@ class ShaderBitmap extends Sprite
     private var paramsUniform:Array<Int>;
     public  var params:Array<Float>;
     
-    private var startTime:Int;
+    private var startTime:Float;
     
     private var m_windowWidth:Float;
     private var m_windowHeight:Float;
@@ -125,7 +125,7 @@ class ShaderBitmap extends Sprite
             }
         }
         
-        startTime = Lib.getTimer ();
+        resetTime();
         vertexBuffer = GL.createBuffer ();  
         
         view = new OpenGLView ();
@@ -136,6 +136,11 @@ class ShaderBitmap extends Sprite
         rebuildMatrix();
     }
     
+    public function resetTime()
+    {
+        startTime = Globals.instance.getTimerSec();
+    }
+
     public function setSize( w:Int, h:Int ):Void 
     {
         this.w = w;
@@ -145,10 +150,10 @@ class ShaderBitmap extends Sprite
     
     private function rebuildMatrix():Void 
     {
-        var x2 = w / 2;
-        var x1 = -x2;
-        var y2 = h / 2;
-        var y1 = -y2;
+        var x2 = w;
+        var x1 = 0;
+        var y2 = h;
+        var y1 = 0;
         m_vertices = [
             x2, y2, 10,
             x1, y2, 10,
@@ -172,7 +177,7 @@ class ShaderBitmap extends Sprite
             {
                 if( m_textureName[i]>0 )
                 { 
-                    GL.activeTexture(GL.TEXTURE0+i);
+                    GL.activeTexture(GL.TEXTURE0+(i));
                     GL.bindBitmapDataTexture( m_textures[i] );
                     GL.uniform1i( m_textureName[i], i );
                 }
@@ -201,18 +206,7 @@ class ShaderBitmap extends Sprite
         GL.enableVertexAttribArray (vertexAttribute);
         GL.vertexAttribPointer (vertexAttribute, 3, GL.FLOAT, false, 0, 0);
         
-        if( timeUniform>=0 )
-        {
-            var time = Lib.getTimer () - startTime;
-            GL.uniform1f (timeUniform, time / 1000);
-        }
-
-        if( mouseUniform>=0 )
-            GL.uniform2f (mouseUniform, (Lib.current.stage.mouseX / Lib.current.stage.stageWidth) * 2 - 1, (Lib.current.stage.mouseY / Lib.current.stage.stageHeight) * 2 - 1);
-
-        if( resolutionUniform>=0 )
-            GL.uniform4f (resolutionUniform, rect.width, rect.height, 1.0 + 1.0/rect.width, 1.0 + 1.0/rect.height);
-        
+        Globals.instance.setUniforms(timeUniform, startTime, mouseUniform, resolutionUniform);
         if( paramsUniform!= null )
         {
             var i:Int = 0;
@@ -230,11 +224,13 @@ class ShaderBitmap extends Sprite
             m_positionY = y;
             m_modelViewMatrix = Matrix3D.create2D (m_positionX, m_positionY, 1, 0);
         }
+	
         if( rect.width!=m_windowWidth || rect.height!=m_windowHeight ) {
             m_windowWidth  = rect.width;
             m_windowHeight = rect.height ;
             m_projectionMatrix = Matrix3D.createOrtho (0, rect.width, rect.height, 0, 1000, -1000);
         }
+
         GL.uniformMatrix3D (m_projectionMatrixUniform, false, m_projectionMatrix);
         GL.uniformMatrix3D (m_modelViewMatrixUniform, false, m_modelViewMatrix);
     
