@@ -65,14 +65,13 @@ class PostprocessIN extends Sprite
 
     function renderviewStart (rect:Rectangle):Void
     {
-        if( m_target == null )
-            m_target = getTarget( Std.int(w), Std.int(h) );
+        var target = getTarget();
 
         mRestoreTarget = sCurrentTarget;
-        sCurrentTarget = m_target;
+        sCurrentTarget = target;
 
         //startRenderToTexture
-        GL.bindFramebuffer( GL.FRAMEBUFFER, m_target.getFramebuffer() );
+        GL.bindFramebuffer( GL.FRAMEBUFFER, target.getFramebuffer() );
 
 #if 0 //desktop
         // Fix if app is resized.
@@ -86,9 +85,16 @@ class PostprocessIN extends Sprite
         }
 }
 
-    private function getTarget( w:Int = -1, h:Int = -1 ):RenderTarget
+    public function getTarget():RenderTarget
     {
-        return new RenderTarget( w, h );
+        if( m_target == null )
+           m_target = new RenderTarget( Std.int(w), Std.int(h) );
+        return m_target;
+    }
+
+    public function setTarget( target:RenderTarget )
+    {
+        m_target = target;
     }
 
     public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0 )

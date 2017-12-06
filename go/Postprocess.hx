@@ -172,6 +172,26 @@ class Postprocess extends Sprite
         startTime = Globals.instance.getTimerSec();
     }
 
+    public function setTarget( target:go.RenderTarget, slot:Int = 0 )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].setTarget( target );
+    }
+
+    public function getTarget( slot:Int = 0 ):go.RenderTarget
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        return mInTargets[slot].getTarget();
+    }
+
     public function addChildSlot( slot:Int, child:DisplayObject )
     {
         if(mInTargets[slot]==null)
