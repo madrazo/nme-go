@@ -1,16 +1,10 @@
 package go;
 
-//import nme.display.BitmapData;
-
 import nme.display.Sprite;
-//import nme.geom.Matrix3D;
 import nme.geom.Rectangle;
 
 import nme.display.OpenGLView;
 import nme.gl.GL;
-///import nme.gl.GLBuffer;
-//import nme.gl.GLProgram;
-//import nme.utils.Float32Array;
 
 import nme.Lib;
 import nme.display.DisplayObject;
@@ -72,7 +66,7 @@ class PostprocessIN extends Sprite
     function renderviewStart (rect:Rectangle):Void
     {
         if( m_target == null )
-            m_target = getTarget( Std.int(rect.width), Std.int(rect.height) );
+            m_target = getTarget( Std.int(w), Std.int(h) );
 
         mRestoreTarget = sCurrentTarget;
         sCurrentTarget = m_target;

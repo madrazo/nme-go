@@ -79,7 +79,7 @@ class Postprocess extends Sprite
     {
         super(); 
         mInTargets = [];
-        mInTargets[0] = new PostprocessIN();
+        mInTargets[0] = new PostprocessIN(w,h);
         super.addChild(mInTargets[0]);
 
         this.x = x;
@@ -176,7 +176,7 @@ class Postprocess extends Sprite
     {
         if(mInTargets[slot]==null)
         {
-            mInTargets[slot] = new PostprocessIN();
+            mInTargets[slot] = new PostprocessIN(w,h);
             super.addChild(mInTargets[slot]);
         }
         mInTargets[slot].addChild( child );
@@ -186,7 +186,7 @@ class Postprocess extends Sprite
     {
         if(mInTargets[slot]==null)
         {
-            mInTargets[slot] = new PostprocessIN();
+            mInTargets[slot] = new PostprocessIN(w,h);
             super.addChild(mInTargets[slot]);
         }
         mInTargets[slot].addChildAt( child, index );
