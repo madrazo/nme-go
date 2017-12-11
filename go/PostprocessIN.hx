@@ -78,6 +78,7 @@ class PostprocessIN extends Sprite
         if ( appscale > 1.0 )
             GL.viewport(0,0,APP_WIDTH,APP_HEIGHT);
 #end
+        GL.viewport(0,0,target.w,target.h);
         if ( m_clear )
         {
             GL.clearColor( m_clear_r, m_clear_g, m_clear_b, m_clear_alpha );
@@ -112,11 +113,13 @@ class PostprocessIN extends Sprite
         {
             sCurrentTarget = mRestoreTarget;
             GL.bindFramebuffer( GL.FRAMEBUFFER, mRestoreTarget.getFramebuffer() );
+            GL.viewport(0,0,mRestoreTarget.w,mRestoreTarget.h);
         }
         else
         {
             sCurrentTarget = null;
             GL.bindFramebuffer( GL.FRAMEBUFFER, null );
+            GL.viewport(0, 0, Lib.current.stage.stageWidth, Lib.current.stage.stageHeight);
         }
     }
 

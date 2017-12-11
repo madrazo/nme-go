@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="Gaussian Blur" package="nme.samples.blur" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="Blur" />
+   <window fps="60" />
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+	<icon path="Assets/icon.svg" />
+
+    <haxelib name="nme-go" />
+	
+</project>

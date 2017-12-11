@@ -83,5 +83,13 @@ class RenderTarget
     private var m_fbo_texture:GLTexture;
     private var m_width:Int;
     private var m_height:Int;
+    public var w(get, null):Int;
+    public var h(get, null):Int;
+    function get_w() {
+        return m_width;
+    }
+    function get_h() {
+        return m_height;
+    }
 }
 
