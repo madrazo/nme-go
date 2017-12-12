@@ -160,8 +160,8 @@ class Postprocess extends Sprite
 
         rebuildMatrix();
 	
-	w2 = 1.0 + 1.0/w;
-	h2 = 1.0 + 1.0/h;
+    	w2 = /*1.0 +*/ 1.0/w;
+    	h2 = /*1.0 +*/ 1.0/h;
 
         //test: fill with red color
         //setClear( true, 0.5, 1.0, 0, 0 );
@@ -321,7 +321,7 @@ class Postprocess extends Sprite
     {       
         #if 0 //desktop
         if ( appscale > 1.0 )
-            GL.viewport( 0, 0, Lib.current.stage.stageWidth, Lib.current.stage.stageWidthHeight);
+            GL.viewport( 0, 0, Lib.current.stage.stageWidth, Lib.current.stage.stageHeight);
         #end
 
         GL.useProgram (shaderProgram);
@@ -353,8 +353,8 @@ class Postprocess extends Sprite
         if( w!=m_windowWidth || h!=m_windowHeight ) {
             m_windowWidth  = w;
             m_windowHeight = h ;
-	    w2 = 1.0 + 1.0/m_windowWidth;
-	    h2 = 1.0 + 1.0/m_windowHeight;
+            w2 = /*1.0 +*/ 1.0/m_windowWidth;
+            h2 = /*1.0 +*/ 1.0/m_windowHeight;
             m_projectionMatrix = Matrix3D.createOrtho (0, w, h, 0, 1000, -1000);
         }
         if( resolutionUniform>=0 )

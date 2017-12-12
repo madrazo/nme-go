@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="Bloom" package="nme.samples.bloom" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="Bloom" />
+   <window fps="60" />
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+	<icon path="Assets/icon.svg" />
+
+    <haxelib name="nme-go" />
+	
+</project>
