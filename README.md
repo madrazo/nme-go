@@ -70,12 +70,11 @@ void main() {
 }  
 ```
 
- >Notes, links and references:
-
- >Work in progress. 
- >elephant1_*.png textures by Cocos2d-x under MIT License
- >NME logo by NME under MIT License
- >Bjorge 2015, [Bandwidth-Efficient Rendering](https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-26-50/siggraph2015_2D00_mmg_2D00_marius_2D00_slides.pdf)
- >Kawase 2003, [Frame Buffer Post-processing Effects in DOUBLE-S.T.E.A.L (Wreckless)](http://www.daionet.gr.jp/~masa/archives/GDC2003_DSTEAL.ppt)
- >Oat 2004, [Real-Time 3D Scene Post-processing](http://www.chrisoat.com/papers/Oat-ScenePostprocessing.pdf)
- >Vergne 2015, [Designing Gratin A GPU-Tailored Node-Based System](http://jcgt.org/published/0004/04/03/)
+* Notes, links and references:
+  - Work in progress. 
+  - elephant1_*.png textures by Cocos2d-x under MIT License
+  - NME logo by NME under MIT License
+  - Bjorge 2015, [Bandwidth-Efficient Rendering](https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-26-50/siggraph2015_2D00_mmg_2D00_marius_2D00_slides.pdf)
+  - Kawase 2003, [Frame Buffer Post-processing Effects in DOUBLE-S.T.E.A.L (Wreckless)](http://www.daionet.gr.jp/~masa/archives/GDC2003_DSTEAL.ppt)
+  - Oat 2004, [Real-Time 3D Scene Post-processing](http://www.chrisoat.com/papers/Oat-ScenePostprocessing.pdf)
+  - Vergne 2015, [Designing Gratin A GPU-Tailored Node-Based System](http://jcgt.org/published/0004/04/03/)
