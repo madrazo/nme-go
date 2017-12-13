@@ -32,14 +32,27 @@ class PostprocessGroup extends Sprite
 
     override public function addChild(child:DisplayObject):DisplayObject 
     {
-        start.addChild( child );
-        return child;
+        return start.addChild(child);
     }
-
 
     override public function addChildAt(child:DisplayObject, index:Int):DisplayObject 
     { 
-        return addChild(child);
+        return start.addChildAt(child,index);
     }
+
+   override public function removeChild(child:DisplayObject):DisplayObject 
+   {
+        return start.removeChild(child);
+   }
+
+   override public function removeChildAt(index:Int):DisplayObject 
+   {
+        return start.removeChildAt(index);
+   }
+
+   override public function removeChildren(beginIndex:Int = 0, endIndex:Int = 0x7FFFFFFF):Void
+   {
+        return start.removeChildren(beginIndex, endIndex);
+   }
 }
 
