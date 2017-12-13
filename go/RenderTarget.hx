@@ -9,8 +9,8 @@ class RenderTarget
 {
     public function new( w:Int= -1, h:Int = -1 ):Void
     {
-        m_width = ( w>=16 ? w: Lib.current.stage.stageWidth );
-        m_height = ( h >= 16 ? h: Lib.current.stage.stageHeight );
+        m_width = ( w>=8 ? w: Lib.current.stage.stageWidth );
+        m_height = ( h >= 8 ? h: Lib.current.stage.stageHeight );
     }
 
     public function getTexture():GLTexture
@@ -85,11 +85,7 @@ class RenderTarget
     private var m_height:Int;
     public var w(get, null):Int;
     public var h(get, null):Int;
-    function get_w() {
-        return m_width;
-    }
-    function get_h() {
-        return m_height;
-    }
+    public function get_w(){ return m_width; }
+    public function get_h(){ return m_height; }
 }
 

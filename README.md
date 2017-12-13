@@ -14,7 +14,15 @@ Similar to a `Bitmap` that has a shader program and 0, 1, 2 or more `BitmapData`
 
 ### Postprocess: 
 
-It's a postprocess node. Its children are drawn on a render target and a shader is applied. You can have `Postprocess` nodes as parent/children of other `Postprocess` nodes. In comparisson, `ShaderBitmap` only applies a shader and doesn't generate a render target.
+It's a postprocess node. Its children are drawn on a render target and a shader is applied. You can have `Postprocess` nodes as parent/children of other `Postprocess` nodes. In comparisson, `ShaderBitmap` only applies a shader and doesn't generate a render target. You can use addChildrenSlot or setTarget with a slot>0 to have more than one RenderTexture as inputs, e.g. to implement a "mix" shader (currently 2 slots implemented).
+
+### PostprocessGroup: 
+
+Use a single node that require various Postprocess objects to add/remove Child from the stage easily. Indicate the start (last child) and end (parent) Postprocess when making a new PostprocessGroup object.
+
+### RenderTarget: 
+
+RenderTargets are created automatically for each Postprocess object. You can set/get Targets manually to reuse RenderTargets or set as input on a Postprocess slot (from another non-children Postprocess output).
 
 ## Installation:
 After installing Haxe and NME, download by Git or Zip. Use command: ```haxelib dev nme-go your_path/nme-go``` 
@@ -53,8 +61,8 @@ varying vec2 vTexCoord;
 uniform sampler2D _Texture0;         //optional: can be none or multiple textures (_Texture1, _Texture2...)
 uniform vec4 _Time;                  //optional: seconds [t/20, t, t*2, t*3]
 uniform vec2 _Mouse;                 //optional: xy mouse position in range 0 to 1
-uniform vec4 _ScreenParams;          //optional: xy are render target width/heights in pixels. z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
-uniform vec4 _Params0;               //optional: custom parameter values (optional: _Params1, _Params2...)
+uniform vec4 _ScreenParams;          //optional: render target [width, height, 1.0/width, 1.0/height] in pixels.
+uniform vec4 _Params0;               //optional: custom four parameter values (optional: _Params1, _Params2...)
 uniform sampler2D _RenderTexture0;   //optional (Postprocess): input textures from render targets 
 
 void main() {  
@@ -62,10 +70,12 @@ void main() {
 }  
 ```
 
- >Notes:
+ >Notes, links and references:
 
- >Work in progress. Getting some ideas from [Designing Gratin A GPU-Tailored Node-Based System](http://jcgt.org/published/0004/04/03/)
-
+ >Work in progress. 
  >elephant1_*.png textures by Cocos2d-x under MIT License
-
  >NME logo by NME under MIT License
+ >Bjorge 2015, [Bandwidth-Efficient Rendering](https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-26-50/siggraph2015_2D00_mmg_2D00_marius_2D00_slides.pdf)
+ >Kawase 2003, [Frame Buffer Post-processing Effects in DOUBLE-S.T.E.A.L (Wreckless)](http://www.daionet.gr.jp/~masa/archives/GDC2003_DSTEAL.ppt)
+ >Oat 2004, [Real-Time 3D Scene Post-processing](http://www.chrisoat.com/papers/Oat-ScenePostprocessing.pdf)
+ >Vergne 2015, [Designing Gratin A GPU-Tailored Node-Based System](http://jcgt.org/published/0004/04/03/)

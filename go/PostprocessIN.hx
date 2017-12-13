@@ -31,16 +31,8 @@ class PostprocessIN extends Sprite
     {
         super(); 
 
-        if(w>8 && h>8)
-        {
-            this.w = w;
-            this.h = h;
-        }
-        else
-        {
-            this.w = Lib.current.stage.stageWidth;
-            this.h = Lib.current.stage.stageHeight;
-        }
+        this.w = ( w>=8 ? w: Lib.current.stage.stageWidth );
+        this.h = ( h>=8 ? h: Lib.current.stage.stageHeight );
         
         viewEnd = new OpenGLView ();            
         viewEnd.render = renderViewEnd;
@@ -54,14 +46,14 @@ class PostprocessIN extends Sprite
 
     public function getTexture():nme.gl.GLTexture
     {
-        return m_target==null? null : m_target.getTexture();
+        return getTarget().getTexture();
     }
     
-    public function setSize( w:Int, h:Int ):Void 
-    {
-        this.w = w;
-        this.h = h;
-    }
+    //public function setSize( w:Int, h:Int ):Void 
+    //{
+    //    this.w = w;
+    //    this.h = h;
+    //}
 
     function renderviewStart (rect:Rectangle):Void
     {
@@ -72,12 +64,6 @@ class PostprocessIN extends Sprite
 
         //startRenderToTexture
         GL.bindFramebuffer( GL.FRAMEBUFFER, target.getFramebuffer() );
-
-#if 0 //desktop
-        // Fix if app is resized.
-        if ( appscale > 1.0 )
-            GL.viewport(0,0,APP_WIDTH,APP_HEIGHT);
-#end
         GL.viewport(0,0,target.w,target.h);
         if ( m_clear )
         {
