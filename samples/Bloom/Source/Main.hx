@@ -82,7 +82,6 @@ class Main extends Sprite {
         var firstKawasePass = postprocessKawasePass[0];
         var lastKawasePass = postprocessKawasePass[postprocessKawasePass.length-1]; 
 
-        addChild(postprocessMixNode);
         postprocessMixNode.addChildSlot(0,lastKawasePass); //blur image on slot0
         postprocessMixNode.setTarget(postprocessBright.getTarget(),1); //original scene on slot1
         firstKawasePass.addChild(postprocessBright);
