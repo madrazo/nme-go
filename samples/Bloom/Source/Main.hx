@@ -34,10 +34,10 @@ class Main extends Sprite {
         nPasses = 4;
         blurTargetScale = 1.0/8.0;
         #end
-        //var pingpongBlur:PostprocessGroup = setPingPongBloom(nPasses, blurTargetScale);
-        var blurNode:PostprocessGroup = setDualFilterBloom(nPasses, blurTargetScale);
-        addChild(blurNode);
-        blurNode.addChild(logo); //add your scene here
+        //var bloomNode:PostprocessGroup = setPingPongBloom(nPasses, blurTargetScale);
+        var bloomNode:PostprocessGroup = setDualFilterBloom(nPasses, blurTargetScale);
+        addChild(bloomNode);
+        bloomNode.addChild(logo); //add your scene here
 
         addEventListener(Event.ENTER_FRAME, OnEnterFrame);
 
@@ -80,12 +80,12 @@ class Main extends Sprite {
         postprocessMixNode = new Postprocess(shaderProgram_mix,w,h);
         postprocessMixNode.setClearSlot(0,true,0.0,0.0,0.0,0.0);
 
-        var firstKawasePass = postprocessDualFilterPass[0];
-        var lastKawasePass = postprocessDualFilterPass[postprocessDualFilterPass.length-1]; 
+        var firstDualFilterPass = postprocessDualFilterPass[0];
+        var lastDualFilterPassPass = postprocessDualFilterPass[postprocessDualFilterPass.length-1]; 
 
-        postprocessMixNode.addChildSlot(0,lastKawasePass); //blur image on slot0
+        postprocessMixNode.addChildSlot(0,lastDualFilterPassPass); //blur image on slot0
         postprocessMixNode.setTarget(postprocessBright.getTarget(),1); //original scene on slot1
-        firstKawasePass.addChild(postprocessBright);
+        firstDualFilterPass.addChild(postprocessBright);
 
         return new PostprocessGroup(postprocessBright,postprocessMixNode);
     }
