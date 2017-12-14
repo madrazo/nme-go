@@ -29,13 +29,9 @@ class Main extends Sprite {
         logo.y =  (stage.stageHeight - logo.height) / 2;
 
         var nPasses = 8;
-        var blurTargetScale:Float = 1.0/4.0;
-        #if mobile
-        nPasses = 4;
-        blurTargetScale = 1.0/8.0;
-        #end
+        //var blurTargetScale:Float = 1.0/4.0;
         //var bloomNode:PostprocessGroup = setPingPongBloom(nPasses, blurTargetScale);
-        var bloomNode:PostprocessGroup = setDualFilterBloom(nPasses, blurTargetScale);
+        var bloomNode:PostprocessGroup = setDualFilterBloom(nPasses, 0.5);
         addChild(bloomNode);
         bloomNode.addChild(logo); //add your scene here
 
@@ -57,12 +53,13 @@ class Main extends Sprite {
         
     function setDualFilterBloom(nPasses:Int, targetScale:Float):PostprocessGroup
     {
-        if(nPasses<=2)
-            return null;
 
         var w = stage.stageWidth;
         var h = stage.stageHeight;
-
+#if mobile
+        w = Std.int(w*targetScale);
+        h = Std.int(h*targetScale);
+#end	    
         var shaderProgram_bright =  nme.gl.Utils.createProgram(vs, fs_bright);
         var shaderProgram_downfilter =  nme.gl.Utils.createProgram(vs_downfilter, fs_downfilter);
         var shaderProgram_upfilter =  nme.gl.Utils.createProgram(vs_upfilter, fs_upfilter);
@@ -73,7 +70,7 @@ class Main extends Sprite {
 
         var postprocessDualFilterPass:Array<Postprocess> = new Array<Postprocess>();
         var nPassesDown = Std.int(nPasses/2);
-        setPyramidNode(postprocessDualFilterPass, shaderProgram_downfilter, shaderProgram_upfilter, nPassesDown, w, h);
+        setPyramidNode(postprocessDualFilterPass, shaderProgram_downfilter, shaderProgram_upfilter, nPassesDown, w, h, targetScale);
         for(i in 0...postprocessDualFilterPass.length)
             postprocessDualFilterPass[i].setClear(true,0.0,0.0,0.0,0.0);
 
@@ -90,9 +87,8 @@ class Main extends Sprite {
         return new PostprocessGroup(postprocessBright,postprocessMixNode);
     }
 
-    function setPyramidNode(postprocessPasses:Array<Postprocess>, shaderProgramDown:GLProgram, shaderProgramUp:GLProgram, nPassesDown:Int, w:Int, h:Int)
+    function setPyramidNode(postprocessPasses:Array<Postprocess>, shaderProgramDown:GLProgram, shaderProgramUp:GLProgram, nPassesDown:Int, w:Int, h:Int, targetScale:Float)
     {
-        var targetScale = 0.5;
         var w2:Int = Std.int(w*targetScale);
         var h2:Int = Std.int(h*targetScale);
         for(i in 0...nPassesDown)
