@@ -24,6 +24,7 @@ class PostprocessIN extends Sprite
     private var m_clear_alpha:Float;
 
     public var m_target:RenderTarget;
+    public var m_swapTarget:RenderTarget;
     public static var sCurrentTarget:RenderTarget;
     private var mRestoreTarget:RenderTarget;
 
@@ -82,6 +83,25 @@ class PostprocessIN extends Sprite
     public function setTarget( target:RenderTarget )
     {
         m_target = target;
+    }
+
+    public function getSwapTarget():RenderTarget
+    {
+        if( m_swapTarget == null )
+           m_swapTarget = new RenderTarget( Std.int(w), Std.int(h) );
+        return m_swapTarget;
+    }
+
+    public function setSwapTarget( target:RenderTarget )
+    {
+        m_swapTarget = target;
+    }
+
+    public function swapTargets()
+    {
+        var temp = getTarget();
+        m_target = getSwapTarget();
+        m_swapTarget = temp;
     }
 
     public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0 )

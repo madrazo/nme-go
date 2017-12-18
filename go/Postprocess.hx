@@ -56,6 +56,7 @@ class Postprocess extends Sprite
     private var m_textures:Array<BitmapData>;
     private var m_textureName:Array<Int>;
     private var m_renderTextureName:Array<Int>;
+    private var m_swapTextureName:Int;
     private var m_normalName:Int;
     private var m_texAttribute:Int;
     private var m_texcoord:Array<Float>;
@@ -73,6 +74,7 @@ class Postprocess extends Sprite
 
     static private inline var s_samplerName:String = "_Texture";
     static private inline var s_renderSamplerName:String = "_RenderTexture";
+    static private inline var s_swapSamplerName:String = "_SwapTexture";
     static private inline var s_paramsName:String = "_Params";
 
     public function new(shaderProgram:GLProgram, textures:Array<BitmapData>=null, w:Int=-1, h:Int=-1):Void
@@ -121,8 +123,17 @@ class Postprocess extends Sprite
         }
 	
         m_renderTextureName = new Array<Int>();
-        m_renderTextureName[0] = GL.getUniformLocation (shaderProgram, s_renderSamplerName+"0"); 
-        
+        var testName:Int;
+        for(i in 0...8) 
+        {
+            testName = GL.getUniformLocation(shaderProgram, s_renderSamplerName+i);
+            if(testName>=0)
+                m_renderTextureName[i] = testName;
+            else
+                break;
+        }
+        m_swapTextureName = GL.getUniformLocation(shaderProgram, s_swapSamplerName);
+
         vertexAttribute = GL.getAttribLocation (shaderProgram, "vertexPosition");
     
         m_projectionMatrixUniform = GL.getUniformLocation (shaderProgram, "NME_MATRIX_P");
@@ -182,6 +193,16 @@ class Postprocess extends Sprite
         mInTargets[slot].setTarget( target );
     }
 
+    public function setSwapTarget( target:go.RenderTarget, slot:Int = 0 )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].setSwapTarget( target );
+    }
+
     public function getTarget( slot:Int = 0 ):go.RenderTarget
     {
         if(mInTargets[slot]==null)
@@ -239,50 +260,54 @@ class Postprocess extends Sprite
 
     private inline function bindTextures():Void 
     {
+        var activeTextureSlot:Int = 0;
         GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
         GL.enableVertexAttribArray (m_texAttribute);
         GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
 
-        var overrideTexture:nme.gl.GLTexture =  mInTargets[0].getTexture();
-        m_renderTextureName[0] = GL.getUniformLocation(shaderProgram, s_renderSamplerName+"0"); 
-        GL.activeTexture(GL.TEXTURE0);
-        if( overrideTexture!=null )
+        for(i in 0...mInTargets.length)
         {
-            GL.bindTexture( GL.TEXTURE_2D, overrideTexture );
+            if( mInTargets[i]!=null )
+            {
+                if( m_renderTextureName[i]>=0 )
+                {
+                    GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));        
+                    var targetTexture:nme.gl.GLTexture =  mInTargets[i].getTexture();
+                    //targetTexture should be not null
+                    GL.bindTexture( GL.TEXTURE_2D, targetTexture );
+                    GL.uniform1i( m_renderTextureName[i], activeTextureSlot );
+                    activeTextureSlot++;
+                }
+                else
+                {
+                    trace("error");
+                }
+            }
         }
-        else
-        {
-            trace("error");
-        }
-        GL.uniform1i( m_renderTextureName[0], 0 );
 
-        if( mInTargets[1]!=null )
+        if(m_swapTextureName>=0)
         {
-            m_renderTextureName[1] = GL.getUniformLocation(shaderProgram, s_renderSamplerName+"1"); 
-            if( m_renderTextureName[1]>0 )
-            {
-                GL.activeTexture(GL.TEXTURE0+1);
-                GL.bindTexture( GL.TEXTURE_2D, mInTargets[1].getTexture() );
-                GL.uniform1i( m_renderTextureName[1], 1 );
-            }
-            else
-            {
-                trace("error");
-            }
+            mInTargets[0].swapTargets();
+            GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
+            var swapTexture:nme.gl.GLTexture =  mInTargets[0].getTexture();
+            GL.bindTexture( GL.TEXTURE_2D, swapTexture );
+            GL.uniform1i( m_swapTextureName, activeTextureSlot );
+            activeTextureSlot++;
         }
 
         if(m_textures!=null)
         {
-            GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
-            GL.enableVertexAttribArray (m_texAttribute);
-            GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
+            //GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
+            //GL.enableVertexAttribArray (m_texAttribute);
+            //GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
             for( i in 0...m_textures.length )
             {
                 if( m_textureName[i]>0 )
                 { 
-                    GL.activeTexture(GL.TEXTURE0+(i));
+                    GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
                     GL.bindBitmapDataTexture( m_textures[i] );
-                    GL.uniform1i( m_textureName[i], i );
+                    GL.uniform1i( m_textureName[i], activeTextureSlot );
+                    activeTextureSlot++;
                 }
             }
         }
