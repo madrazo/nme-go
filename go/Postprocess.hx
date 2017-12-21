@@ -203,6 +203,16 @@ class Postprocess extends Sprite
         mInTargets[slot].setSwapTarget( target );
     }
 
+    public function swapTargets(slot:Int = 0)
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].swapTargets();
+    }
+
     public function getTarget( slot:Int = 0 ):go.RenderTarget
     {
         if(mInTargets[slot]==null)
@@ -211,6 +221,16 @@ class Postprocess extends Sprite
             super.addChild(mInTargets[slot]);
         }
         return mInTargets[slot].getTarget();
+    }
+
+    public function getSwapTarget( slot:Int = 0 ):go.RenderTarget
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        return mInTargets[slot].getSwapTarget();
     }
 
     public function addChildSlot( slot:Int, child:DisplayObject )
@@ -287,7 +307,6 @@ class Postprocess extends Sprite
 
         if(m_swapTextureName>=0)
         {
-            mInTargets[0].swapTargets();
             GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
             var swapTexture:nme.gl.GLTexture =  mInTargets[0].getTexture();
             GL.bindTexture( GL.TEXTURE_2D, swapTexture );
