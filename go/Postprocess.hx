@@ -238,7 +238,7 @@ class Postprocess extends Sprite
         if(mInTargets[slot]==null)
         {
             mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
+            super.addChildAt(mInTargets[slot], numChildren-1);
         }
         mInTargets[slot].addChild( child );
     }
@@ -248,9 +248,34 @@ class Postprocess extends Sprite
         if(mInTargets[slot]==null)
         {
             mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
+            super.addChildAt(mInTargets[slot], numChildren-1);
         }
         mInTargets[slot].addChildAt( child, index );
+    }
+    
+    public function removeChildSlot( slot:Int, child:DisplayObject )
+    {
+        if(mInTargets[slot]!=null)
+            mInTargets[slot].removeChild( child );
+    }
+
+    public function removeChildrenSlot( slot:Int, beginIndex:Int = 0, endIndex:Int = 0x7FFFFFFF)
+    {
+        if(mInTargets[slot]!=null)
+        {
+            beginIndex++;
+            if(endIndex == 0x7FFFFFFF)
+                endIndex = nmeChildren.length - 2;
+
+            mInTargets[slot].removeChildren();
+        }
+    }
+
+    public function removeChildAt_Slot( slot:Int, index:Int ):DisplayObject 
+    {
+        if(mInTargets[slot]!=null)
+           return mInTargets[slot].removeChildAt( (index+1) );
+       return null;
     }
     
     public function setSize( w:Int, h:Int ):Void 
@@ -304,7 +329,7 @@ class Postprocess extends Sprite
                 }
             }
         }
-
+/*
         if(m_swapTextureName>=0)
         {
             GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
@@ -313,7 +338,7 @@ class Postprocess extends Sprite
             GL.uniform1i( m_swapTextureName, activeTextureSlot );
             activeTextureSlot++;
         }
-
+*/
         if(m_textures!=null)
         {
             //GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
@@ -429,5 +454,22 @@ class Postprocess extends Sprite
         addChildAt_Slot(0, child, index); 
         return child;
     }
+    
+    override public function removeChild(child:DisplayObject):DisplayObject 
+    {
+        removeChildSlot(0, child); 
+        return child;
+    }
+
+    override public function removeChildAt(index:Int):DisplayObject 
+    {
+        return removeChildAt_Slot(0, index); 
+    }
+
+    override public function removeChildren(beginIndex:Int = 0, endIndex:Int = 0x7FFFFFFF):Void 
+    {
+        removeChildrenSlot(0, beginIndex, endIndex);
+    }
+
 }
 
