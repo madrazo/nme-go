@@ -287,9 +287,10 @@ class Postprocess extends Sprite
         {
             beginIndex++;
             if(endIndex == 0x7FFFFFFF)
-                endIndex = nmeChildren.length - 2;
+                endIndex = mInTargets[slot].numChildren - 2;
 
-            mInTargets[slot].removeChildren(beginIndex, endIndex);
+            if(beginIndex<=endIndex && endIndex>0)
+                mInTargets[slot].removeChildren(beginIndex, endIndex);
         }
     }
 
