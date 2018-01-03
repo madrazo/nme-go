@@ -22,6 +22,7 @@ class PostprocessIN extends Sprite
     private var m_clear_g:Float;
     private var m_clear_b:Float;
     private var m_clear_alpha:Float;
+    private var m_clear_once:Int;
 
     public var m_target:RenderTarget;
     public var m_swapTarget:RenderTarget;
@@ -70,6 +71,8 @@ class PostprocessIN extends Sprite
         {
             GL.clearColor( m_clear_r, m_clear_g, m_clear_b, m_clear_alpha );
             GL.clear( GL.COLOR_BUFFER_BIT );
+            if( m_clear_once>0 )
+              m_clear = ( --m_clear_once ) > 0;
         }
 }
 
@@ -88,7 +91,11 @@ class PostprocessIN extends Sprite
     public function getSwapTarget():RenderTarget
     {
         if( m_swapTarget == null )
+        {
            m_swapTarget = new RenderTarget( Std.int(w), Std.int(h) );
+           if( m_clear_once==1 ) 
+            m_clear_once++;
+        }
         return m_swapTarget;
     }
 
@@ -104,13 +111,14 @@ class PostprocessIN extends Sprite
         m_swapTarget = temp;
     }
 
-    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0 )
+    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, once:Bool=false )
     {
         m_clear = value;
         m_clear_alpha = alpha;
         m_clear_r = r;
         m_clear_g = g;
         m_clear_b = b;
+        m_clear_once = once? (m_swapTarget!=null? 2: 1) : -1;
     }
 
     private function renderViewEnd (rect:Rectangle):Void

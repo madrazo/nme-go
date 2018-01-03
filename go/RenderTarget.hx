@@ -11,6 +11,9 @@ class RenderTarget
     {
         m_width = ( w>=8 ? w: Lib.current.stage.stageWidth );
         m_height = ( h >= 8 ? h: Lib.current.stage.stageHeight );
+#if debug
+        name = "Rendertarget: " + (nTarget++);
+#end
     }
 
     public function getTexture():GLTexture
@@ -87,5 +90,9 @@ class RenderTarget
     public var h(get, null):Int;
     public function get_w(){ return m_width; }
     public function get_h(){ return m_height; }
+#if debug
+    static private var nTarget:Int = 0;
+    public var name:String;
+#end
 }
 

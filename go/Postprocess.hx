@@ -233,6 +233,28 @@ class Postprocess extends Sprite
         return mInTargets[slot].getSwapTarget();
     }
 
+#if debug
+    public function setSlotName( name:String, slot:Int = 0 )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        mInTargets[slot].name = name;
+    }
+
+    public function getSlotName( slot:Int = 0 )
+    {
+        if(mInTargets[slot]==null)
+        {
+            mInTargets[slot] = new PostprocessIN(w,h);
+            super.addChild(mInTargets[slot]);
+        }
+        return mInTargets[slot].name;
+    }
+#end
+
     public function addChildSlot( slot:Int, child:DisplayObject )
     {
         if(mInTargets[slot]==null)
@@ -267,7 +289,7 @@ class Postprocess extends Sprite
             if(endIndex == 0x7FFFFFFF)
                 endIndex = nmeChildren.length - 2;
 
-            mInTargets[slot].removeChildren();
+            mInTargets[slot].removeChildren(beginIndex, endIndex);
         }
     }
 
@@ -371,19 +393,19 @@ class Postprocess extends Sprite
         #end
     }
 
-    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, slot:Int=0 )
+    public function setClear( value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, once:Bool=false )
     {
-        setClearSlot( 0, value, alpha, r, g , b);
+        setClearSlot( 0, value, alpha, r, g , b, once);
     }
 
-    public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0)
+    public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, once:Bool=false)
     {
         if(mInTargets[slot]==null)
         {
             trace("error. needs SetChildSlot first");
             return;
         }
-        mInTargets[slot].setClear( value, alpha, r, g , b);
+        mInTargets[slot].setClear( value, alpha, r, g , b, once);
     }
 
     private function renderViewEnd (rect:Rectangle):Void
