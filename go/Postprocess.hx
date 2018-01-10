@@ -17,19 +17,19 @@ import nme.display.DisplayObject;
 
 class Postprocess extends Sprite
 {
-    private var shaderProgram:GLProgram;
-    private var vertexAttribute:Int;
-    private var vertexBuffer:GLBuffer;
-    private var viewStart:OpenGLView;
-    private var viewEnd:OpenGLView;
+    private var m_shaderProgram:GLProgram;
+    private var m_vertexAttribute:Int;
+    private var m_vertexBuffer:GLBuffer;
+    private var m_viewStart:OpenGLView;
+    private var m_viewEnd:OpenGLView;
     
     private var m_vertices:Array<Float>;
     private var m_verticesArray:Float32Array;
     
-    private var h:Int;
-    private var w:Int;
-    private var h2:Float;
-    private var w2:Float;
+    private var m_h:Int;
+    private var m_w:Int;
+    private var m_invH:Float;
+    private var m_invW:Float;
     
     private var m_positionX:Float;
     private var m_positionY:Float;
@@ -39,24 +39,23 @@ class Postprocess extends Sprite
     private var m_projectionMatrixUniform:Int;
     private var m_modelViewMatrixUniform:Int;
     
-    private var positionAttribute:Int;
-    private var timeUniform:Int;
-    private var mouseUniform:Int;
-    private var resolutionUniform:Int;
+    private var m_timeUniform:Int;
+    private var m_mouseUniform:Int;
+    private var m_resolutionUniform:Int;
 
-    private var paramsUniform:Array<Int>;
-    public  var params:Array<Float>;
-    
-    private var startTime:Float;
+    private var m_textureUniformArr:Array<Int>;
+    private var m_rendertextureUniformArr:Array<Int>;
+    private var m_paramsUniformArr:Array<Int>;
+    private var m_swapTextureName:Int;
+
+    private var m_startTime:Float;
     
     private var m_windowWidth:Float;
     private var m_windowHeight:Float;
 
-    //textures
     private var m_textures:Array<BitmapData>;
-    private var m_textureName:Array<Int>;
-    private var m_renderTextureName:Array<Int>;
-    private var m_swapTextureName:Int;
+    public  var params:Array<Float>;
+
     private var m_normalName:Int;
     private var m_texAttribute:Int;
     private var m_texcoord:Array<Float>;
@@ -68,36 +67,37 @@ class Postprocess extends Sprite
     private var m_clear_g:Float;
     private var m_clear_b:Float;
     private var m_clear_alpha:Float;
-    private var mDrawOffline:Bool;
 
-    public var mInTargets:Array<PostprocessIN>;
+    public var m_InTargetSlots:Array<PostprocessIN>;
 
-    static private inline var s_samplerName:String = "_Texture";
+    static private inline var s_samplerName:String       = "_Texture";
     static private inline var s_renderSamplerName:String = "_RenderTexture";
-    static private inline var s_swapSamplerName:String = "_SwapTexture";
-    static private inline var s_paramsName:String = "_Params";
+    static private inline var s_swapSamplerName:String   = "_SwapTexture";
+    static private inline var s_paramsName:String        = "_Params";
 
     public function new(shaderProgram:GLProgram, textures:Array<BitmapData>=null, w:Int=-1, h:Int=-1):Void
     {
         super(); 
-        mInTargets = [];
-        mInTargets[0] = new PostprocessIN(w,h);
-        super.addChild(mInTargets[0]);
+        m_InTargetSlots = [];
+        m_InTargetSlots[0] = new PostprocessIN(w,h);
+        super.addChild(m_InTargetSlots[0]);
 
         this.x = x;
         this.y = y;
         if(w>8 && h>8)
         {
-            this.w = w;
-            this.h = h;
+            m_w = w;
+            m_h = h;
         }
         else
         {
-            this.w = Lib.current.stage.stageWidth;
-            this.h = Lib.current.stage.stageHeight;
+            m_w = Lib.current.stage.stageWidth;
+            m_h = Lib.current.stage.stageHeight;
         }
+        m_invW = 1.0/m_w;
+        m_invH = 1.0/m_h;
         m_positionY = -1;
-        this.shaderProgram = shaderProgram;
+        m_shaderProgram = shaderProgram;
 
 
         m_texBuffer = GL.createBuffer ();    
@@ -111,209 +111,175 @@ class Postprocess extends Sprite
         GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
         GL.bufferData (GL.ARRAY_BUFFER, m_texArray , GL.STATIC_DRAW);
 
-        m_texAttribute = GL.getAttribLocation (shaderProgram, "texPosition");
+        m_texAttribute = GL.getAttribLocation (m_shaderProgram, "texPosition");
+        m_textures = textures;
 
+        var testLocation:Int;
 
-        if(textures!=null && textures.length>0)
-        {
-            m_textures = textures;
-            m_textureName = new Array<Int>();
-            for(i in 0...m_textures.length)
-                m_textureName[i] = GL.getUniformLocation (shaderProgram, s_samplerName+i); 
-        }
-	
-        m_renderTextureName = new Array<Int>();
-        var testName:Int;
-        for(i in 0...8) 
-        {
-            testName = GL.getUniformLocation(shaderProgram, s_renderSamplerName+i);
-            if(testName>=0)
-                m_renderTextureName[i] = testName;
-            else
-                break;
-        }
-        m_swapTextureName = GL.getUniformLocation(shaderProgram, s_swapSamplerName);
-
-        vertexAttribute = GL.getAttribLocation (shaderProgram, "vertexPosition");
+        testLocation = GL.getUniformLocation(m_shaderProgram, s_samplerName+0);
+        if(testLocation>0) 
+            fillUniformLocationArray(m_textureUniformArr = [], s_samplerName, testLocation);
     
-        m_projectionMatrixUniform = GL.getUniformLocation (shaderProgram, "NME_MATRIX_P");
-        m_modelViewMatrixUniform = GL.getUniformLocation (shaderProgram, "NME_MATRIX_MV");
-        
-        timeUniform = GL.getUniformLocation (shaderProgram, "_Time");
-        resolutionUniform = GL.getUniformLocation (shaderProgram, "_ScreenParams");
-        mouseUniform = GL.getUniformLocation (shaderProgram, "_Mouse");
+        testLocation = GL.getUniformLocation(m_shaderProgram, s_renderSamplerName+0);
+        if(testLocation>0) 
+            fillUniformLocationArray(m_rendertextureUniformArr = [], s_renderSamplerName, testLocation);
 
-        var paramsUniform0:Int = GL.getUniformLocation (shaderProgram, s_paramsName+0);
-        if (paramsUniform0>0)
+        testLocation = GL.getUniformLocation(m_shaderProgram, s_paramsName+0);
+        if(testLocation>0) 
         {
-            paramsUniform = [];
             params = [];
-            paramsUniform[0] = paramsUniform0;
-            var i:Int=1;
-            while ( i<paramsUniform.length && paramsUniform[i]>0 ) 
-            {
-                paramsUniform[i] = GL.getUniformLocation (shaderProgram, s_paramsName+i);
-                i++;
-            }
+                fillUniformLocationArray(m_paramsUniformArr = [], s_paramsName, testLocation);
         }
+
+        m_swapTextureName = GL.getUniformLocation(m_shaderProgram, s_swapSamplerName);
+        m_vertexAttribute = GL.getAttribLocation (m_shaderProgram, "vertexPosition");
+
+        m_projectionMatrixUniform = GL.getUniformLocation (m_shaderProgram, "NME_MATRIX_P");
+        m_modelViewMatrixUniform = GL.getUniformLocation (m_shaderProgram, "NME_MATRIX_MV");
         
+        m_timeUniform = GL.getUniformLocation (m_shaderProgram, "_Time");
+        m_resolutionUniform = GL.getUniformLocation (m_shaderProgram, "_ScreenParams");
+        m_mouseUniform = GL.getUniformLocation (m_shaderProgram, "_Mouse");
+
         resetTime();
-        vertexBuffer = GL.createBuffer ();
+        m_vertexBuffer = GL.createBuffer();
         
-        viewEnd = new OpenGLView ();            
-        viewEnd.render = renderViewEnd;
+        m_viewEnd = new OpenGLView();            
+        m_viewEnd.render = renderViewEnd;
 
-        viewStart = new OpenGLView ();           
-        viewStart.render = renderviewStart;
+        m_viewStart = new OpenGLView();           
+        m_viewStart.render = renderViewStart;
 
-        super.addChild(viewStart);
-        super.addChild(viewEnd);
+        super.addChild(m_viewStart);
+        super.addChild(m_viewEnd);
 
         rebuildMatrix();
-	
-    	w2 = /*1.0 +*/ 1.0/w;
-    	h2 = /*1.0 +*/ 1.0/h;
 
         //test: fill with red color
         //setClear( true, 0.5, 1.0, 0, 0 );
     }
 
+    private inline function fillUniformLocationArray(locationArray:Array<Int>, uniformBaseName:String, testLocation:Int)
+    {
+        var i:Int = 0;
+        while(testLocation>0)
+        {
+            locationArray[i++] = testLocation;
+            testLocation = GL.getUniformLocation(m_shaderProgram, uniformBaseName+i);
+        }
+    }
+
     public function resetTime()
     {
-        startTime = Globals.instance.getTimerSec();
+        m_startTime = Globals.instance.getTimerSec();
+    }
+
+    private function initSlot( slot:Int )
+    {
+        if(m_InTargetSlots[slot]==null)
+        {
+            m_InTargetSlots[slot] = new PostprocessIN(m_w,m_h);
+            super.addChild(m_InTargetSlots[slot]);
+        }
     }
 
     public function setTarget( target:go.RenderTarget, slot:Int = 0 )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        mInTargets[slot].setTarget( target );
+        initSlot( slot );
+        m_InTargetSlots[slot].setTarget( target );
     }
 
     public function setSwapTarget( target:go.RenderTarget, slot:Int = 0 )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        mInTargets[slot].setSwapTarget( target );
+        initSlot( slot );
+        m_InTargetSlots[slot].setSwapTarget( target );
     }
 
     public function swapTargets(slot:Int = 0)
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        mInTargets[slot].swapTargets();
+        initSlot( slot );
+        m_InTargetSlots[slot].swapTargets();
     }
 
     public function getTarget( slot:Int = 0 ):go.RenderTarget
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        return mInTargets[slot].getTarget();
+        initSlot( slot );
+        return m_InTargetSlots[slot].getTarget();
     }
 
     public function getSwapTarget( slot:Int = 0 ):go.RenderTarget
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        return mInTargets[slot].getSwapTarget();
+        initSlot( slot );
+        return m_InTargetSlots[slot].getSwapTarget();
     }
 
 #if debug
     public function setSlotName( name:String, slot:Int = 0 )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        mInTargets[slot].name = name;
+        initSlot( slot );
+        m_InTargetSlots[slot].name = name;
     }
 
     public function getSlotName( slot:Int = 0 )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChild(mInTargets[slot]);
-        }
-        return mInTargets[slot].name;
+        initSlot( slot );
+        return m_InTargetSlots[slot].name;
     }
 #end
 
     public function addChildSlot( slot:Int, child:DisplayObject )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChildAt(mInTargets[slot], numChildren-1);
-        }
-        mInTargets[slot].addChild( child );
+        initSlot( slot );
+        m_InTargetSlots[slot].addChild( child );
     }
 
     public function addChildAt_Slot( slot:Int, child:DisplayObject, index:Int )
     {
-        if(mInTargets[slot]==null)
-        {
-            mInTargets[slot] = new PostprocessIN(w,h);
-            super.addChildAt(mInTargets[slot], numChildren-1);
-        }
-        mInTargets[slot].addChildAt( child, index );
+        initSlot( slot );
+        m_InTargetSlots[slot].addChildAt( child, index );
     }
     
     public function removeChildSlot( slot:Int, child:DisplayObject )
     {
-        if(mInTargets[slot]!=null)
-            mInTargets[slot].removeChild( child );
+        if(m_InTargetSlots[slot]!=null)
+            m_InTargetSlots[slot].removeChild( child );
     }
 
     public function removeChildrenSlot( slot:Int, beginIndex:Int = 0, endIndex:Int = 0x7FFFFFFF)
     {
-        if(mInTargets[slot]!=null)
+        if(m_InTargetSlots[slot]!=null)
         {
             beginIndex++;
             if(endIndex == 0x7FFFFFFF)
-                endIndex = mInTargets[slot].numChildren - 2;
+                endIndex = m_InTargetSlots[slot].numChildren - 2;
+            else
+                endIndex = endIndex - 2;
 
             if(beginIndex<=endIndex && endIndex>0)
-                mInTargets[slot].removeChildren(beginIndex, endIndex);
+                m_InTargetSlots[slot].removeChildren(beginIndex, endIndex);
         }
     }
 
     public function removeChildAt_Slot( slot:Int, index:Int ):DisplayObject 
     {
-        if(mInTargets[slot]!=null)
-           return mInTargets[slot].removeChildAt( (index+1) );
+        if(m_InTargetSlots[slot]!=null)
+           return m_InTargetSlots[slot].removeChildAt( (index+1) );
        return null;
     }
     
     public function setSize( w:Int, h:Int ):Void 
     {
-        this.w = w;
-        this.h = h;
+        m_w = w;
+        m_h = h;
         rebuildMatrix();
     }
     
     private function rebuildMatrix():Void 
     {
-        var x2 = w;
+        var x2 = m_w;
         var x1 = 0;
         var y2 = 0;
-        var y1 = h;
+        var y1 = m_h;
         m_vertices = [
             x2, y2, 10,
             x1, y2, 10,
@@ -322,7 +288,7 @@ class Postprocess extends Sprite
             
         ];
         m_verticesArray = new Float32Array (m_vertices);
-        GL.bindBuffer (GL.ARRAY_BUFFER, vertexBuffer);    
+        GL.bindBuffer (GL.ARRAY_BUFFER, m_vertexBuffer);    
         GL.bufferData (GL.ARRAY_BUFFER, m_verticesArray , GL.STATIC_DRAW);
     }
 
@@ -333,23 +299,19 @@ class Postprocess extends Sprite
         GL.enableVertexAttribArray (m_texAttribute);
         GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
 
-        for(i in 0...mInTargets.length)
+        if( m_rendertextureUniformArr!=null )
         {
-            if( mInTargets[i]!=null )
+            for(i in 0...m_rendertextureUniformArr.length)
             {
-                if( m_renderTextureName[i]>=0 )
-                {
-                    GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));        
-                    var targetTexture:nme.gl.GLTexture =  mInTargets[i].getTexture();
-                    //targetTexture should be not null
-                    GL.bindTexture( GL.TEXTURE_2D, targetTexture );
-                    GL.uniform1i( m_renderTextureName[i], activeTextureSlot );
-                    activeTextureSlot++;
-                }
-                else
-                {
-                    trace("error");
-                }
+                #if debug
+                if(m_InTargetSlots[i]==null)
+                    throw("Error, no initialized slot for _RenderTexture"+i);
+                #end
+                GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
+                var targetTexture:nme.gl.GLTexture =  m_InTargetSlots[i].getTexture();
+                GL.bindTexture( GL.TEXTURE_2D, targetTexture );
+                GL.uniform1i( m_rendertextureUniformArr[i], activeTextureSlot );
+                activeTextureSlot++;
             }
         }
 /*
@@ -362,20 +324,26 @@ class Postprocess extends Sprite
             activeTextureSlot++;
         }
 */
-        if(m_textures!=null)
+        if( m_textureUniformArr!=null )
         {
             //GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
             //GL.enableVertexAttribArray (m_texAttribute);
             //GL.vertexAttribPointer (m_texAttribute, 2, GL.FLOAT, false, 0, 0);
-            for( i in 0...m_textures.length )
+            #if debug
+            if(m_textures==null)
+                throw("Error, you didn't provide a texture array. Did you mean _RenderTexture0 instead of _Texture0?");
+            #end
+
+            for( i in 0...m_textureUniformArr.length )
             {
-                if( m_textureName[i]>0 )
-                { 
-                    GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
-                    GL.bindBitmapDataTexture( m_textures[i] );
-                    GL.uniform1i( m_textureName[i], activeTextureSlot );
-                    activeTextureSlot++;
-                }
+                #if debug
+                if(m_textures[i]==null)
+                    throw("Error, you didn't provide a texture in the array. Did you mean _RenderTexture"+i+" instead of _Texture"+i+"?");
+                #end
+                GL.activeTexture(GL.TEXTURE0+(activeTextureSlot));
+                GL.bindBitmapDataTexture( m_textures[i] );
+                GL.uniform1i( m_textureUniformArr[i], activeTextureSlot );
+                activeTextureSlot++;
             }
         }
     }
@@ -385,7 +353,7 @@ class Postprocess extends Sprite
         GL.bindTexture( GL.TEXTURE_2D, null );
     }
     
-    function renderviewStart (rect:Rectangle):Void
+    function renderViewStart (rect:Rectangle):Void
     {
         #if 0 //desktop
         // Fix if app is resized.
@@ -401,12 +369,12 @@ class Postprocess extends Sprite
 
     public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, once:Bool=false)
     {
-        if(mInTargets[slot]==null)
+        if(m_InTargetSlots[slot]==null)
         {
-            trace("error. needs SetChildSlot first");
+            trace("Error. needs SetChildSlot first");
             return;
         }
-        mInTargets[slot].setClear( value, alpha, r, g , b, once);
+        m_InTargetSlots[slot].setClear( value, alpha, r, g , b, once);
     }
 
     private function renderViewEnd (rect:Rectangle):Void
@@ -416,21 +384,21 @@ class Postprocess extends Sprite
             GL.viewport( 0, 0, Lib.current.stage.stageWidth, Lib.current.stage.stageHeight);
         #end
 
-        GL.useProgram (shaderProgram);
+        GL.useProgram (m_shaderProgram);
         
-        GL.bindBuffer (GL.ARRAY_BUFFER, vertexBuffer);
-        GL.enableVertexAttribArray (vertexAttribute);
-        GL.vertexAttribPointer (vertexAttribute, 3, GL.FLOAT, false, 0, 0);
+        GL.bindBuffer (GL.ARRAY_BUFFER, m_vertexBuffer);
+        GL.enableVertexAttribArray (m_vertexAttribute);
+        GL.vertexAttribPointer (m_vertexAttribute, 3, GL.FLOAT, false, 0, 0);
         
-        Globals.instance.setUniforms(timeUniform, startTime, mouseUniform, -1);
+        Globals.instance.setUniforms(m_timeUniform, m_startTime, m_mouseUniform, -1);
  
-        if( paramsUniform!= null )
+        if( m_paramsUniformArr!= null )
         {
             var i:Int = 0;
             var j:Int = 0;
-            while(j<paramsUniform.length && paramsUniform[j]>0)
+            while(j<m_paramsUniformArr.length && m_paramsUniformArr[j]>0)
             {
-                GL.uniform4f (paramsUniform[j], params[i++], params[i++], params[i++], params[i++]);
+                GL.uniform4f (m_paramsUniformArr[j], params[i++], params[i++], params[i++], params[i++]);
                 j++;
             }
         }
@@ -442,15 +410,15 @@ class Postprocess extends Sprite
             m_modelViewMatrix = Matrix3D.create2D (m_positionX, m_positionY, 1, 0);
         }
 
-        if( w!=m_windowWidth || h!=m_windowHeight ) {
-            m_windowWidth  = w;
-            m_windowHeight = h ;
-            w2 = /*1.0 +*/ 1.0/m_windowWidth;
-            h2 = /*1.0 +*/ 1.0/m_windowHeight;
-            m_projectionMatrix = Matrix3D.createOrtho (0, w, h, 0, 1000, -1000);
+        if( m_w!=m_windowWidth || m_h!=m_windowHeight ) {
+            m_windowWidth  = m_w;
+            m_windowHeight = m_h ;
+            m_invW = /*1.0 +*/ 1.0/m_windowWidth;
+            m_invH = /*1.0 +*/ 1.0/m_windowHeight;
+            m_projectionMatrix = Matrix3D.createOrtho (0, m_w, m_h, 0, 1000, -1000);
         }
-        if( resolutionUniform>=0 )
-            GL.uniform4f (resolutionUniform, w, h, w2, h2);
+        if( m_resolutionUniform>=0 )
+            GL.uniform4f(m_resolutionUniform, m_w, m_h, m_invW, m_invH);
         GL.uniformMatrix3D (m_projectionMatrixUniform, false, m_projectionMatrix);
         GL.uniformMatrix3D (m_modelViewMatrixUniform, false, m_modelViewMatrix);
     
@@ -462,7 +430,7 @@ class Postprocess extends Sprite
     
         GL.bindBuffer (GL.ARRAY_BUFFER, null);    
         GL.useProgram (null);
-        GL.disableVertexAttribArray(vertexAttribute);
+        GL.disableVertexAttribArray(m_vertexAttribute);
 
     }
 
