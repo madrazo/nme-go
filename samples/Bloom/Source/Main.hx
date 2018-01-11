@@ -123,12 +123,12 @@ class Main extends Sprite {
     public var fs_bright = 
 "
     varying vec2 vTexCoord;
-    uniform sampler2D _Texture0;
+    uniform sampler2D _RenderTexture0;
     const vec3 W = vec3(0.299, 0.587, 0.114);
 
     void main() 
     { 
-        vec4 color = texture2D(_Texture0, vTexCoord); 
+        vec4 color = texture2D(_RenderTexture0, vTexCoord); 
         float luminance = dot(color.rgb, W);
         vec3 threshold = 1.0-W;
         vec3 one_minus_threshold = W;
@@ -203,14 +203,14 @@ class Main extends Sprite {
     varying vec2 BottomRight;
     varying vec2 BottomLeft;
     varying vec2 vTexCoord;
-    uniform sampler2D _Texture0;   
+    uniform sampler2D _RenderTexture0;   
       
     void main() {  
-        vec4 accum = texture2D(_Texture0, TopLeft);
-        accum += texture2D(_Texture0, TopRight);
-        accum += texture2D(_Texture0, BottomRight);
-        accum += texture2D(_Texture0, BottomLeft);
-        vec4 center = texture2D(_Texture0, BottomLeft);
+        vec4 accum = texture2D(_RenderTexture0, TopLeft);
+        accum += texture2D(_RenderTexture0, TopRight);
+        accum += texture2D(_RenderTexture0, BottomRight);
+        accum += texture2D(_RenderTexture0, BottomLeft);
+        vec4 center = texture2D(_RenderTexture0, BottomLeft);
         gl_FragColor =  accum * 0.125 + center * 0.5;
     }
 ";
@@ -225,17 +225,17 @@ class Main extends Sprite {
     varying vec2 Right;
     varying vec2 Bottom;
 
-    uniform sampler2D _Texture0;   
+    uniform sampler2D _RenderTexture0;   
       
     void main() {  
-        vec4 accum = texture2D(_Texture0, TopLeft);
-        accum += texture2D(_Texture0, TopRight);
-        accum += texture2D(_Texture0, BottomRight);
-        accum += texture2D(_Texture0, BottomLeft);
-        vec4 accum2 = texture2D(_Texture0, Top);
-        accum2 += texture2D(_Texture0, Left);
-        accum2 += texture2D(_Texture0, Right);
-        accum2 += texture2D(_Texture0, Bottom);
+        vec4 accum = texture2D(_RenderTexture0, TopLeft);
+        accum += texture2D(_RenderTexture0, TopRight);
+        accum += texture2D(_RenderTexture0, BottomRight);
+        accum += texture2D(_RenderTexture0, BottomLeft);
+        vec4 accum2 = texture2D(_RenderTexture0, Top);
+        accum2 += texture2D(_RenderTexture0, Left);
+        accum2 += texture2D(_RenderTexture0, Right);
+        accum2 += texture2D(_RenderTexture0, Bottom);
         gl_FragColor =  accum * 0.1666666 + accum2 * 0.0833333;
     }
 ";
@@ -335,13 +335,13 @@ class Main extends Sprite {
     varying vec2 TopRight;
     varying vec2 BottomRight;
     varying vec2 BottomLeft;
-    uniform sampler2D _Texture0;   
+    uniform sampler2D _RenderTexture0;   
       
     void main() {  
-        vec4 accum = texture2D(_Texture0, TopLeft);
-        accum += texture2D(_Texture0, TopRight);
-        accum += texture2D(_Texture0, BottomRight);
-        accum += texture2D(_Texture0, BottomLeft);
+        vec4 accum = texture2D(_RenderTexture0, TopLeft);
+        accum += texture2D(_RenderTexture0, TopRight);
+        accum += texture2D(_RenderTexture0, BottomRight);
+        accum += texture2D(_RenderTexture0, BottomLeft);
         gl_FragColor =  accum * 0.25;
     }
 ";
