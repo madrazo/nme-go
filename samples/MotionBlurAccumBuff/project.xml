@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="Motion Blur by Accum Buffer" package="nmego.samples.MotionBlur" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="Drop" />
+    <window fps="60" width="1280" height="720"  if="desktop"/>
+    <window singleInstance="true" if="windows"/>
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+	<icon path="Assets/icon.svg" />
+
+  <haxelib name="nme-go" />
+	
+</project>

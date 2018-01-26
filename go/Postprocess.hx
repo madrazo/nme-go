@@ -56,7 +56,7 @@ class Postprocess extends Sprite
     private var m_textures:Array<BitmapData>;
     public  var params:Array<Float>;
 
-    private var m_normalName:Int;
+
     private var m_texAttribute:Int;
     private var m_texcoord:Array<Float>;
     private var m_texBuffer:GLBuffer;
@@ -369,11 +369,7 @@ class Postprocess extends Sprite
 
     public function setClearSlot( slot:Int, value:Bool, alpha:Float = 0.0, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, once:Bool=false)
     {
-        if(m_InTargetSlots[slot]==null)
-        {
-            trace("Error. needs SetChildSlot first");
-            return;
-        }
+        initSlot( slot );
         m_InTargetSlots[slot].setClear( value, alpha, r, g , b, once);
     }
 
