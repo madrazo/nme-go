@@ -10,7 +10,7 @@ import nme.Assets;
 import nme.Lib;
 
 import go.Postprocess;
-import go.nme.gl.Utils;
+import nme.gl.Utils;
 
 
 class Main extends Sprite {
