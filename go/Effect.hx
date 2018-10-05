@@ -15,7 +15,7 @@ import nme.utils.Float32Array;
 import nme.Lib;
 import nme.display.DisplayObject;
 
-class PostprocessGroup extends Sprite
+class Effect extends Sprite
 {
 
     public var start:Postprocess;

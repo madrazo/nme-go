@@ -16,9 +16,9 @@ Similar to a `Bitmap` that has a shader program and 0, 1, 2 or more `BitmapData`
 
 It's a postprocess node. Its children are drawn on a render target and a shader is applied. You can have `Postprocess` nodes as parent/children of other `Postprocess` nodes. In comparisson, `ShaderBitmap` only applies a shader and doesn't generate a render target. You can use addChildrenSlot or setTarget with a slot>0 to have more than one RenderTexture as inputs, e.g. to implement a "mix" shader (currently 2 slots implemented).
 
-### PostprocessGroup: 
+### Effect: 
 
-Use a single node that require various Postprocess objects to add/remove Child from the stage easily. Indicate the start (last child) and end (parent) Postprocess when making a new PostprocessGroup object.
+Use a single node that require various Postprocess objects to add/remove Child from the stage easily. Indicate the start (last child) and end (parent) Postprocess when making a new Effect object.
 
 ### RenderTarget: 
 

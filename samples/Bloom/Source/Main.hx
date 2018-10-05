@@ -11,7 +11,7 @@ import nme.Lib;
 
 import go.Postprocess;
 import go.ShaderBitmap;
-import go.PostprocessGroup;
+import go.Effect;
 import nme.gl.GLProgram;
 
 class Main extends Sprite {
@@ -30,8 +30,8 @@ class Main extends Sprite {
 
         var nPasses = 8;
         //var blurTargetScale:Float = 1.0/4.0;
-        //var bloomNode:PostprocessGroup = setPingPongBloom(nPasses, blurTargetScale);
-        var bloomNode:PostprocessGroup = setDualFilterBloom(nPasses, 0.5);
+        //var bloomNode:Effect = setPingPongBloom(nPasses, blurTargetScale);
+        var bloomNode:Effect = setDualFilterBloom(nPasses, 0.5);
         addChild(bloomNode);
         bloomNode.addChild(logo); //add your scene here
 
@@ -51,7 +51,7 @@ class Main extends Sprite {
         }
     }
         
-    function setDualFilterBloom(nPasses:Int, targetScale:Float):PostprocessGroup
+    function setDualFilterBloom(nPasses:Int, targetScale:Float):Effect
     {
 
         var w = stage.stageWidth;
@@ -84,7 +84,7 @@ class Main extends Sprite {
         postprocessMixNode.setTarget(postprocessBright.getTarget(),1); //original scene on slot1
         firstDualFilterPass.addChild(postprocessBright);
 
-        return new PostprocessGroup(postprocessBright,postprocessMixNode);
+        return new Effect(postprocessBright,postprocessMixNode);
     }
 
     function setPyramidNode(postprocessPasses:Array<Postprocess>, shaderProgramDown:GLProgram, shaderProgramUp:GLProgram, nPassesDown:Int, w:Int, h:Int, targetScale:Float)
@@ -257,7 +257,7 @@ class Main extends Sprite {
 
 
 
-    function setPingPongBloom(nPasses:Int, targetScale:Float):PostprocessGroup
+    function setPingPongBloom(nPasses:Int, targetScale:Float):Effect
     {
         var w = stage.stageWidth;
         var h = stage.stageHeight;
@@ -289,7 +289,7 @@ class Main extends Sprite {
         postprocessMixNode.setTarget(postprocessBright.getTarget(),1); //original scene on slot1
         firstKawasePass.addChild(postprocessBright);
 
-        return new PostprocessGroup(postprocessBright,postprocessMixNode);
+        return new Effect(postprocessBright,postprocessMixNode);
     }
 
     function setPingPongNode(postprocessPasses:Array<Postprocess>, shaderProgram:GLProgram, nPasses:Int, w:Int, h:Int)
