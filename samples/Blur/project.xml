@@ -7,7 +7,7 @@
 
 	<source path="Source" />
 	<assets path="Assets" rename="assets"/>
-	<icon path="Assets/icon.svg" />
+	<icon path="Assets/nme.svg" />
 
     <haxelib name="nme-go" />
 	
