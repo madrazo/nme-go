@@ -8,13 +8,13 @@ import nme.events.Event;
 import nme.Assets;
 import nme.Lib;
 
-import go.ShaderBitmap;
+import go.effects.Mix;
 import go.Postprocess;
 
 class Main extends Sprite {
 
     var startTime:Float;
-    var postprocessMixNode:Postprocess;
+    var mixNode:Mix;
 
     public function new () {
         
@@ -29,20 +29,16 @@ class Main extends Sprite {
         logo2.x =  (stage.stageWidth - logo.width) / 2 + 100;
         logo2.y =  (stage.stageHeight - logo.height) / 2;
 
-        //Postprocess node with 2 render textures shader (needs addChildSlot 0 and 1)
-        var shaderProgram_mix =  nme.gl.Utils.createProgram(vs, fs_mix);
-        postprocessMixNode = new Postprocess(shaderProgram_mix);
 
         var shaderProgram_copy =  nme.gl.Utils.createProgram(vs, fs_copy);
         var postprocessChildExampleNode:Postprocess = new Postprocess(shaderProgram_copy);
-        //postprocessChildExampleNode.setClear(true,0.0,0.0,0.0,0.0);
         postprocessChildExampleNode.addChild(logo2);
 
-        postprocessMixNode.addChildSlot(0,postprocessChildExampleNode); //same as addChild
-        postprocessMixNode.addChildSlot(1,logo);
-        //postprocessMixNode.setClearSlot(0,true,0.0,0.0,0.0,0.0);
-        //postprocessMixNode.setClearSlot(1,true,0.0,0.0,0.0,0.0);
-        addChild(postprocessMixNode);
+        var scale:Float = 1.0;
+        mixNode = new Mix(Std.int(stage.stageWidth), Std.int(stage.stageHeight), scale);
+        addChild(mixNode);
+        //mixNode.addChildren(logo,logo2);
+        mixNode.addChildren( postprocessChildExampleNode, logo);
 
         startTime = Lib.getTimer();
         addEventListener(Event.ENTER_FRAME, OnEnterFrame);
@@ -51,8 +47,7 @@ class Main extends Sprite {
     function OnEnterFrame(inEvent:Event)
     {          
         var time = Lib.getTimer() - startTime;
-        //access with _Param0.x in shader
-        postprocessMixNode.params[0] = (Math.sin( time*0.01 )+1.0) /2.0;
+        mixNode.setAmount( (Math.sin( time*0.01 )+1.0) /2.0 );
     }
 
     public var vs = 
@@ -72,23 +67,6 @@ class Main extends Sprite {
     uniform sampler2D _RenderTexture0;
     void main() {
         gl_FragColor = texture2D(_RenderTexture0, vTexCoord).brga;  
-    }  
-";
-
-
-    //Pixel shader with two render textures
-    public var fs_mix = 
-"   varying vec2 vTexCoord;
-
-    uniform sampler2D _RenderTexture0;
-    uniform sampler2D _RenderTexture1;
-    uniform vec4 _Params0; //could use (sin( _Time.y*0.01 )+1.0) /2.0 
-  
-    void main() {
-        // Set the output color of our current pixel  
-        vec4 c1 = texture2D(_RenderTexture0, vTexCoord).rgba;  
-        vec4 c2 = texture2D(_RenderTexture1, vTexCoord).rgba;  
-        gl_FragColor = mix(c1,c2,_Params0.x);
     }  
 ";
 
