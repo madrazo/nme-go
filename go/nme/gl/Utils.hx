@@ -3,9 +3,16 @@ import nme.gl.GL;
 
 class Utils
 {
+   private static var VScache = new StringMap<GLShader>();
+   private static var FScache = new StringMap<GLShader>();
+
    public static function createShader(source:String, type:Int)
    {
-      var shader = GL.createShader(type);
+      var shader:GLShader;
+      shader = (type == GL.VERTEX_SHADER ? VScache.get(source) : VScache.get(source));
+      if(shader != null)
+         return shader;
+      shader = GL.createShader(type);
       GL.shaderSource(shader, source);
       GL.compileShader(shader);
       if (GL.getShaderParameter(shader, GL.COMPILE_STATUS)==0)
@@ -17,6 +24,7 @@ class Utils
             throw err;
          }
       }
+      (type == GL.VERTEX_SHADER ? VScache.set(source,shader) : VScache.set(source,shader));
       return shader;
    }
 
