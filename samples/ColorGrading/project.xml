@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="ColorGrading" package="nme.samples.colorgrading" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="ColorGrading" />
+   <window fps="60" />
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+	<icon path="Assets/nme.svg" />
+
+    <haxelib name="nme-go" />
+	
+</project>

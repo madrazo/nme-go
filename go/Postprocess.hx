@@ -62,12 +62,6 @@ class Postprocess extends Sprite
     private var m_texBuffer:GLBuffer;
     private var m_texArray:Float32Array;
 
-    private var m_clear:Bool;
-    private var m_clear_r:Float;
-    private var m_clear_g:Float;
-    private var m_clear_b:Float;
-    private var m_clear_alpha:Float;
-
     public var m_InTargetSlots:Array<PostprocessIN>;
 
     static private inline var s_samplerName:String       = "_Texture";
