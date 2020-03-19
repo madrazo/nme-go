@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+  <meta title="Sprite3D" package="nme.samples.sprite3d" version="1.0.0" company="NME" />
+  <app main="Main" path="Export" file="Sprite3D" />
+
+	<source path="Source" />
+	<assets path="Assets" rename="assets"/>
+    <icon path="Assets/nme.svg" />
+
+    <haxelib name="haxe-gltf" />
+    <haxelib name="nme-go" />
+
+    <!--<haxedef name="gles3" />-->
+    <haxedef name="gles2compat" />
+	
+</project>
