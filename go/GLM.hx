@@ -1,4 +1,4 @@
-package;
+package go;
 
 
 import nme.geom.Matrix3D;

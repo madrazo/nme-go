@@ -1,5 +1,5 @@
 
-package;
+package go;
 
 import nme.Lib;
 import nme.geom.Matrix3D;
@@ -8,7 +8,7 @@ import nme.events.Event;
 import nme.events.KeyboardEvent;
 import nme.events.MouseEvent;
 import nme.ui.Keyboard;
-import GLM;
+import go.GLM;
 
 class Controls {
     

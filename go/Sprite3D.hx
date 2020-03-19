@@ -6,7 +6,6 @@ import nme.utils.ByteArray;
 import nme.gl.Utils;
 import nme.utils.Int16Array;    
 import nme.geom.Vector3D;
-import GLM;
 
 import nme.display.BitmapData;
 
@@ -25,7 +24,7 @@ import go.nme.gl.GL3Utils;
 
 import nme.Lib;
 import nme.Assets;
-import Controls;
+import go.Controls;
 
 class Sprite3D extends Sprite
 {

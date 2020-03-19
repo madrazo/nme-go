@@ -1,6 +1,4 @@
-
-package;
-
+package go.nme.gl;
 import nme.Assets;
 import nme.gl.GL;
 
