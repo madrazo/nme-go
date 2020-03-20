@@ -19,11 +19,12 @@ class Main extends Sprite {
         logo.y =  (stage.stageHeight - logo.height) / 2;
         addChild(logo);
 
-	    var s = new go.Sprite3D("assets", "Box.gltf");
-        addChild(s);
+	    //var box = new go.Sprite3D("assets", "Box.gltf");
+        //addChild(box);
 
-        // Dark blue background: For NME, use "opaqueBackground" instead of "clearColor"
-        //GL.clearColor(0.0, 0.0, 0.4, 0.0);
+	    var boxTextured = new go.Sprite3D("assets", "BoxTextured.gltf");
+        addChild(boxTextured);
+
         //nme.Lib.stage.opaqueBackground = 0x000066;
 
     }
