@@ -65,11 +65,9 @@ class Sprite3D extends Sprite
     private var m_windowWidth:Float;
     private var m_windowHeight:Float;
 
-    //textures
-    private var m_textures:Array<BitmapData>;
-    private var m_textureName:Array<Int>;
-    static private inline var s_samplerName:String = "_Texture";
-    static private inline var s_paramsName:String = "_Params";
+    //texture from a material
+    private var baseColorTextureData:BitmapData;
+    private var baseColorTextureHandle:Int;
     
     private var nIndices:Int;
 
@@ -110,55 +108,56 @@ class Sprite3D extends Sprite
             binaryBuffers.push(binaryBuffer);
         }
 
-        m_textures = [];
-        for(img in jsonParse.images)
-        {
-            var imageData:BitmapData = Assets.getBitmapData (sourceDir + "/" + img.uri);
-            m_textures.push(imageData);
-        }
-
         var gltfModel = GLTF.load(jsonParse, binaryBuffers);
 
         m_positionY = -1;
         
-	    // Create and compile our GLSL program from the shaders
-        if (!GL3Utils.isGLES3compat())
-        {
-            vertShader = GL3Utils.vsToGLES2(vertShader);
-            fragShader = GL3Utils.fsToGLES2(fragShader);
-        }
-        shaderProgram = Utils.createProgram(vertShader,fragShader);
 
-        if(m_textures.length>0)
+        
+        if(jsonParse.materials.length>0 && jsonParse.materials[0].pbrMetallicRoughness != null && jsonParse.materials[0].pbrMetallicRoughness.baseColorTexture != null)
         {
-            //this.w = textures[0].width;
-            //this.h = textures[0].height;
-            
-            //m_texBuffer = GL.createBuffer ();    
-            //m_texcoord = [
-            //        1.0, 1.0,
-            //        0.0, 1.0,
-            //        1.0, 0.0,
-            //        0.0, 0.0
-            //    ];
-            //m_texArray = new Float32Array (m_texcoord);
-            //GL.bindBuffer (GL.ARRAY_BUFFER, m_texBuffer);    
-            //GL.bufferData (GL.ARRAY_BUFFER, m_texArray , GL.STATIC_DRAW);
-
-            m_textureName = new Array<Int>();
-            for(i in 0...m_textures.length)
-                m_textureName[i] = GL.getUniformLocation(shaderProgram, s_samplerName+i); 
+            // Create and compile our GLSL program from the shaders
+            if (!GL3Utils.isGLES3compat())
+            {
+                vertShader = GL3Utils.vsToGLES2(vertShader);
+                fragShader = GL3Utils.fsToGLES2(fragShader);
+            }
+            shaderProgram = Utils.createProgram(vertShader,fragShader);
         }
+        else
+        {
+            if (!GL3Utils.isGLES3compat())
+            {
+                vertShaderNoTexture = GL3Utils.vsToGLES2(vertShaderNoTexture);
+                fragShaderNoTexture = GL3Utils.fsToGLES2(fragShaderNoTexture);
+            }
+            shaderProgram = Utils.createProgram(vertShaderNoTexture,fragShaderNoTexture);
+        }
+
+
+
 
         //vertexAttribute = GL.getAttribLocation (shaderProgram, "vertexPosition");
         posAttribute = 0;
         normalAttribute = 1;
-        uvsAttribute = 2;
         if (!GL3Utils.isGLES3compat())
         {
             posAttribute = GL.getAttribLocation(shaderProgram, "vertexPosition_modelspace");
             normalAttribute = GL.getAttribLocation(shaderProgram, "vertexNormal_modelspace");
-            uvsAttribute = GL.getAttribLocation(shaderProgram, "vertexUV");
+        }
+
+        baseColorTextureHandle =-1;
+        uvsAttribute = -1;
+        if(jsonParse.materials.length>0 && jsonParse.materials[0].pbrMetallicRoughness != null && jsonParse.materials[0].pbrMetallicRoughness.baseColorTexture != null)
+        {
+            var baseColorTextureIndex:Int = jsonParse.materials[0].pbrMetallicRoughness.baseColorTexture.index;
+            baseColorTextureHandle = GL.getUniformLocation(shaderProgram, "baseColorTexture"); 
+            baseColorTextureData = Assets.getBitmapData (sourceDir + "/" + jsonParse.images[baseColorTextureIndex].uri);
+            uvsAttribute = 2;
+            if (!GL3Utils.isGLES3compat())
+            {
+                uvsAttribute = GL.getAttribLocation(shaderProgram, "vertexUV");
+            }
         }
 
         // Get a handle for our "LightPosition" uniform
@@ -199,35 +198,32 @@ class Sprite3D extends Sprite
         vertexBuffer = GL.createBuffer ();  
         #end
 
+
+
         var indexed_vertices:haxe.ds.Vector<Float> = gltfModel.meshes[0].primitives[0].getFloatAttributeValues("POSITION");
-        var indexed_normals:haxe.ds.Vector<Float> = gltfModel.meshes[0].primitives[0].getFloatAttributeValues("NORMAL");
-        var indexed_uvs:haxe.ds.Vector<Float> = gltfModel.meshes[0].primitives[0].getFloatAttributeValues("TEXCOORD_0");
-        var indices:haxe.ds.Vector<Int> = gltfModel.meshes[0].primitives[0].getIndexValues();
-
-
-
-        nIndices = indices.length;
         vertexBuffer = GL.createBuffer();
         GL.bindBuffer(GL.ARRAY_BUFFER, vertexBuffer);
         GL.bufferData(GL.ARRAY_BUFFER, new Float32Array(indexed_vertices), GL.STATIC_DRAW);
         
+        var indexed_normals:haxe.ds.Vector<Float> = gltfModel.meshes[0].primitives[0].getFloatAttributeValues("NORMAL");
         normalBuffer = GL.createBuffer();
         GL.bindBuffer(GL.ARRAY_BUFFER, normalBuffer);
         GL.bufferData(GL.ARRAY_BUFFER, new Float32Array(indexed_normals), GL.STATIC_DRAW);
 
-        uvsBuffer = GL.createBuffer();
-        GL.bindBuffer(GL.ARRAY_BUFFER, uvsBuffer);
-        GL.bufferData(GL.ARRAY_BUFFER, new Float32Array(indexed_uvs), GL.STATIC_DRAW);
+        if(baseColorTextureHandle>=0)
+        {
+            var indexed_uvs:haxe.ds.Vector<Float> = gltfModel.meshes[0].primitives[0].getFloatAttributeValues("TEXCOORD_0");
+            uvsBuffer = GL.createBuffer();
+            GL.bindBuffer(GL.ARRAY_BUFFER, uvsBuffer);
+            GL.bufferData(GL.ARRAY_BUFFER, new Float32Array(indexed_uvs), GL.STATIC_DRAW);
+        }
 
+        var indices:haxe.ds.Vector<Int> = gltfModel.meshes[0].primitives[0].getIndexValues();
+        nIndices = indices.length;
         // Generate a buffer for the indices
         elementBuffer = GL.createBuffer();
         GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, elementBuffer);
         GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, new Int16Array(indices), GL.STATIC_DRAW);
-
-
-
-
-
 
 
         view = new OpenGLView ();
@@ -272,34 +268,30 @@ class Sprite3D extends Sprite
 */
     private inline function bindTextures():Void 
     {
-        if(m_textures!=null)
+        if(baseColorTextureHandle>=0)
         {
             GL.bindBuffer (GL.ARRAY_BUFFER, uvsBuffer);    
             GL.enableVertexAttribArray (uvsAttribute);
             GL.vertexAttribPointer (uvsAttribute, 2, GL.FLOAT, false, 0, 0);
-            for( i in 0...m_textures.length )
-            {
-                if( m_textureName[i]>0 )
-                { 
-                    GL.activeTexture(GL.TEXTURE0+(i));
-                    GL.bindBitmapDataTexture( m_textures[i] );
-                    GL.uniform1i( m_textureName[i], i );
-                }
-            }
+
+            GL.activeTexture(GL.TEXTURE0+(0));
+            GL.bindBitmapDataTexture( baseColorTextureData );
+            GL.uniform1i( baseColorTextureHandle, 0 );
         }
     }
     
     private inline function unbindTextures():Void 
     {
-        GL.bindTexture( GL.TEXTURE_2D, null );
-        //if(m_textures!=null)
-        //{
+        if(baseColorTextureHandle>=0)
+        {
+            GL.bindTexture( GL.TEXTURE_2D, null );
+
         //    GL.activeTexture(GL.TEXTURE1);
         //    GL.bindTexture(GL.TEXTURE_2D, null);
         //    GL.activeTexture(GL.TEXTURE0);  
         //    GL.bindTexture(GL.TEXTURE_2D, null);
-        //    GL.disableVertexAttribArray(uvsAttribute);
-        //}
+            GL.disableVertexAttribArray(uvsAttribute);
+        }
     }
     
     function renderView (rect:Rectangle):Void
@@ -383,12 +375,6 @@ class Sprite3D extends Sprite
         GL.enableVertexAttribArray (normalAttribute);
         GL.vertexAttribPointer (normalAttribute, 3, GL.FLOAT, false, 0, 0);
 
-        //uvs
-        GL.bindBuffer (GL.ARRAY_BUFFER, uvsBuffer);
-        GL.enableVertexAttribArray (uvsAttribute);
-        GL.vertexAttribPointer (uvsAttribute, 2, GL.FLOAT, false, 0, 0);
-        
-
         GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, elementBuffer);
 
         bindTextures();
@@ -403,7 +389,6 @@ class Sprite3D extends Sprite
         GL.disableVertexAttribArray(posAttribute);
 
         GL.disableVertexAttribArray(normalAttribute);
-        GL.disableVertexAttribArray(uvsAttribute);
 
 
         //NME: Disable if enabled per frame
@@ -426,7 +411,7 @@ in vec3 LightDirection_cameraspace;
 out vec4 color;
 
 // Values that stay constant for the whole mesh.
-uniform sampler2D _Texture0;
+uniform sampler2D baseColorTexture;
 uniform mat4 MV;
 uniform vec3 LightPosition_worldspace;
 
@@ -437,7 +422,7 @@ void main(){
     float LightPower = 50.0;
     
     // Material properties
-    vec3 MaterialDiffuseColor = texture( _Texture0, UV ).rgb;
+    vec3 MaterialDiffuseColor = texture( baseColorTexture, UV ).rgb;
     //vec3 MaterialDiffuseColor = vec3(0.1,0.1,0.1);
     vec3 MaterialAmbientColor = vec3(0.1,0.1,0.1) * MaterialDiffuseColor;
     vec3 MaterialSpecularColor = vec3(0.3,0.3,0.3);
@@ -522,6 +507,108 @@ void main(){
   // The color of each vertex will be interpolated
   // to produce the color of each fragment
   UV = vertexUV;
+}
+";
+
+       private var fragShaderNoTexture:String = 
+(GL3Utils.isDesktopGL()? "#version 330 core\n" : "#version 300 es\nprecision mediump float;\n") +
+"// Interpolated values from the vertex shaders
+in vec3 Position_worldspace;
+in vec3 Normal_cameraspace;
+in vec3 EyeDirection_cameraspace;
+in vec3 LightDirection_cameraspace;
+
+// Ouput data
+out vec4 color;
+
+// Values that stay constant for the whole mesh.
+uniform mat4 MV;
+uniform vec3 LightPosition_worldspace;
+
+void main(){
+    // Light emission properties
+    // You probably want to put them as uniforms
+    vec3 LightColor = vec3(1,1,1);
+    float LightPower = 50.0;
+    
+    // Material properties
+    vec3 MaterialDiffuseColor = vec3(0.1,0.1,0.1);
+    vec3 MaterialAmbientColor = vec3(0.1,0.1,0.1) * MaterialDiffuseColor;
+    vec3 MaterialSpecularColor = vec3(0.3,0.3,0.3);
+
+    // Distance to the light
+    float distance = length( LightPosition_worldspace - Position_worldspace );
+
+    // Normal of the computed fragment, in camera space
+    vec3 n = normalize( Normal_cameraspace );
+    // Direction of the light (from the fragment to the light)
+    vec3 l = normalize( LightDirection_cameraspace );
+    // Cosine of the angle between the normal and the light direction, 
+    // clamped above 0
+    //  - light is at the vertical of the triangle -> 1
+    //  - light is perpendicular to the triangle -> 0
+    //  - light is behind the triangle -> 0
+    float cosTheta = clamp( dot( n,l ), 0.0 , 1.0);
+    
+    // Eye vector (towards the camera)
+    vec3 E = normalize(EyeDirection_cameraspace);
+    // Direction in which the triangle reflects the light
+    vec3 R = reflect(-l,n);
+    // Cosine of the angle between the Eye vector and the Reflect vector,
+    // clamped to 0
+    //  - Looking into the reflection -> 1
+    //  - Looking elsewhere -> < 1
+    float cosAlpha = clamp( dot( E,R ), 0.0, 1.0);
+    
+    vec3 col =
+        // Ambient : simulates indirect lighting
+        MaterialAmbientColor +
+        // Diffuse : color of the object
+        MaterialDiffuseColor * LightColor * LightPower * cosTheta / (distance*distance) +
+        // Specular : reflective highlight, like a mirror
+        MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5.0) / (distance*distance);
+        
+    color = vec4(col,1.0); 
+}
+";
+
+
+      private var vertShaderNoTexture:String =
+(GL3Utils.isDesktopGL()? "#version 330 core\n" : "#version 300 es\nprecision mediump float;\n") +
+"// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexNormal_modelspace;
+
+// Output data ; will be interpolated for each fragment.
+out vec3 Position_worldspace;
+out vec3 Normal_cameraspace;
+out vec3 EyeDirection_cameraspace;
+out vec3 LightDirection_cameraspace;
+
+// Values that stay constant for the whole mesh.
+uniform mat4 MVP;
+uniform mat4 V;
+uniform mat4 M;
+uniform vec3 LightPosition_worldspace;
+
+void main(){
+  // Output position of the vertex, in clip space : MVP * position
+  gl_Position =  MVP * vec4(vertexPosition_modelspace,1.0);
+
+    // Position of the vertex, in worldspace : M * position
+    Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;
+    
+    // Vector that goes from the vertex to the camera, in camera space.
+    // In camera space, the camera is at the origin (0,0,0).
+    vec3 vertexPosition_cameraspace = ( V * M * vec4(vertexPosition_modelspace,1)).xyz;
+    EyeDirection_cameraspace = vec3(0,0,0) - vertexPosition_cameraspace;
+
+    // Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
+    vec3 LightPosition_cameraspace = ( V * vec4(LightPosition_worldspace,1)).xyz;
+    LightDirection_cameraspace = LightPosition_cameraspace + EyeDirection_cameraspace;
+    
+    // Normal of the the vertex, in camera space
+    Normal_cameraspace = ( V * M * vec4(vertexNormal_modelspace,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
 }
 ";
 
